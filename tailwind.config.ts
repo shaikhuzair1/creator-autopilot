@@ -70,6 +70,11 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				chat: {
+					DEFAULT: 'hsl(var(--chat-background))',
+					input: 'hsl(var(--chat-input))',
+					border: 'hsl(var(--chat-border))'
 				}
 			},
 			borderRadius: {

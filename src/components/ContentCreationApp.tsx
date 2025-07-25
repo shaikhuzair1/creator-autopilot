@@ -9,6 +9,7 @@ import Scheduling from './content/Scheduling';
 import Analytics from './content/Analytics';
 import Projects from './content/Projects';
 import Templates from './content/Templates';
+import Chat from './content/Chat';
 
 const ContentCreationApp: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -26,6 +27,8 @@ const ContentCreationApp: React.FC = () => {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard />;
+      case 'chat':
+        return <Chat />;
       case 'ideation':
         return <ContentIdeation />;
       case 'creation':

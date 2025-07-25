@@ -2,74 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Content Creation Autopilot Design System - Copy.ai Inspired
+/* Content Creation Autopilot Design System - Copy.ai Exact Match
 All colors MUST be HSL for consistency.
 */
 
 @layer base {
   :root {
-    /* Base colors - Clean and modern */
-    --background: 250 100% 99%;
-    --foreground: 230 15% 15%;
+    /* Base colors - Copy.ai exact match */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 15%;
 
-    /* Card system - Elevated and clean */
+    /* Card system - Clean white cards */
     --card: 0 0% 100%;
-    --card-foreground: 230 15% 15%;
+    --card-foreground: 240 10% 15%;
 
     /* Popover system */
     --popover: 0 0% 100%;
-    --popover-foreground: 230 15% 15%;
+    --popover-foreground: 240 10% 15%;
 
-    /* Primary brand - Vibrant purple like Copy.ai */
-    --primary: 270 70% 55%;
+    /* Primary brand - Copy.ai purple */
+    --primary: 262 88% 65%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 270 70% 65%;
+    --primary-glow: 262 88% 75%;
 
-    /* Secondary - Subtle purple tint */
-    --secondary: 250 30% 96%;
-    --secondary-foreground: 270 70% 45%;
+    /* Secondary - Subtle grays */
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
 
-    /* Muted tones */
-    --muted: 250 20% 96%;
-    --muted-foreground: 230 10% 45%;
+    /* Muted tones - Copy.ai style */
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
 
-    /* Accent - Coral/teal for CTAs */
-    --accent: 15 85% 60%;
-    --accent-foreground: 0 0% 100%;
-    --accent-secondary: 180 70% 50%;
+    /* Accent - Copy.ai accent colors */
+    --accent: 240 5% 96%;
+    --accent-foreground: 240 6% 10%;
+    --accent-secondary: 262 88% 65%;
 
     /* Status colors */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --success: 140 70% 45%;
+    --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
 
-    /* UI elements */
-    --border: 250 30% 90%;
-    --input: 250 30% 94%;
-    --ring: 270 70% 55%;
+    /* UI elements - Copy.ai exact */
+    --border: 240 6% 90%;
+    --input: 240 6% 94%;
+    --ring: 262 88% 65%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Gradients for modern look */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-secondary)));
-    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)));
+    /* Shadows - Copy.ai style */
+    --shadow-soft: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-elevated: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-glow: 0 0 30px hsl(var(--primary) / 0.3);
 
-    /* Shadows for elevation */
-    --shadow-soft: 0 2px 10px -2px hsl(var(--primary) / 0.1);
-    --shadow-elevated: 0 8px 30px -8px hsl(var(--primary) / 0.15);
-    --shadow-glow: 0 0 30px hsl(var(--primary-glow) / 0.3);
-
-    /* Sidebar system */
-    --sidebar-background: 250 50% 98%;
-    --sidebar-foreground: 230 15% 20%;
-    --sidebar-primary: 270 70% 55%;
+    /* Sidebar system - Copy.ai dark sidebar */
+    --sidebar-background: 240 10% 8%;
+    --sidebar-foreground: 240 10% 85%;
+    --sidebar-primary: 262 88% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 250 30% 95%;
-    --sidebar-accent-foreground: 270 70% 45%;
-    --sidebar-border: 250 30% 88%;
-    --sidebar-ring: 270 70% 55%;
+    --sidebar-accent: 240 6% 15%;
+    --sidebar-accent-foreground: 240 10% 85%;
+    --sidebar-border: 240 6% 20%;
+    --sidebar-ring: 262 88% 65%;
+
+    /* Chat system colors */
+    --chat-background: 0 0% 100%;
+    --chat-input: 240 6% 98%;
+    --chat-border: 240 6% 90%;
 
     /* Animation timing */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

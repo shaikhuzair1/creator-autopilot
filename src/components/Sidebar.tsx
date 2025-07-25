@@ -78,10 +78,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, activeTab, onToggle, onT
       <div className="p-4 border-t border-sidebar-border">
         {!isCollapsed && (
           <div className="animate-fade-in">
-            <div className="bg-gradient-to-r from-accent to-accent-secondary rounded-lg p-3 text-center">
-              <div className="text-sm font-semibold text-white mb-1">Upgrade to Pro</div>
-              <div className="text-xs text-white/80 mb-2">Unlock unlimited features</div>
-              <Button variant="secondary" size="sm" className="w-full">
+            <div className="bg-sidebar-accent rounded-lg p-3 text-center border border-sidebar-border">
+              <div className="text-sm font-semibold text-sidebar-foreground mb-1">Upgrade Your Plan</div>
+              <div className="text-xs text-muted-foreground mb-2">Unlock unlimited features</div>
+              <Button variant="default" size="sm" className="w-full bg-primary hover:bg-primary/90">
                 Upgrade Now
               </Button>
             </div>
@@ -89,8 +89,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, activeTab, onToggle, onT
         )}
         {isCollapsed && (
           <div className="flex justify-center">
-            <div className="w-8 h-8 bg-gradient-to-r from-accent to-accent-secondary rounded-full flex items-center justify-center animate-glow-pulse">
-              <span className="text-white text-sm font-bold">⭐</span>
+            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
+              <span className="text-primary-foreground text-sm font-bold">⭐</span>
             </div>
           </div>
         )}

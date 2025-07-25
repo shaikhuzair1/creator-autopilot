@@ -4,6 +4,7 @@ import { NavigationItem, ContentIdea, Project, Template, VideoClip, AnalyticsDat
 
 export const navigationItems: NavigationItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: '🏠', path: '/dashboard', description: 'Overview and stats' },
+  { id: 'chat', label: 'Chat', icon: '💬', path: '/chat', description: 'AI-powered assistant' },
   { id: 'ideation', label: 'Content Ideation', icon: '💡', path: '/ideation', description: 'Generate content ideas' },
   { id: 'creation', label: 'Content Creation', icon: '✍️', path: '/creation', description: 'Create captions & scripts' },
   { id: 'video', label: 'Video Editing', icon: '🎥', path: '/video', description: 'Generate video clips' },
