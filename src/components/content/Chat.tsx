@@ -38,56 +38,37 @@ const Chat: React.FC = () => {
   ];
 
   return (
-    <div className="h-full flex flex-col bg-chat">
+    <div className="h-full flex flex-col bg-white">
       {/* Chat Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-8 space-y-8">
         {chatHistory.length === 1 ? (
-          <div className="flex flex-col items-center justify-center h-full space-y-8">
-            <div className="text-center max-w-2xl">
-              <h1 className="text-3xl font-bold text-foreground mb-4">
-                Welcome to Chat by Creator Autopilot
+          <div className="flex flex-col items-center justify-center h-full space-y-10 max-w-4xl mx-auto">
+            <div className="text-center">
+              <h1 className="text-4xl font-semibold text-foreground mb-4">
+                Welcome to <span className="font-bold">Chat by Copy.ai</span>
               </h1>
-              <p className="text-muted-foreground text-lg">
+              <p className="text-muted-foreground text-lg max-w-2xl">
                 Get started by writing a task and Chat can do the rest. Not sure where to start? Check out the Prompt Library for inspiration.
               </p>
             </div>
 
             {/* Real-Time Search Section */}
-            <Card className="p-6 max-w-2xl w-full">
-              <div className="flex items-center space-x-3 mb-4">
-                <Search className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold text-foreground">Real-Time Search</h3>
+            <div className="w-full max-w-2xl">
+              <div className="flex items-center space-x-3 mb-6">
+                <Search className="h-5 w-5 text-foreground" />
+                <h3 className="font-medium text-foreground">Real-Time Search</h3>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {examplePrompts.map((prompt, index) => (
                   <button
                     key={index}
                     onClick={() => setMessage(prompt)}
-                    className="block w-full text-left p-3 text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-md transition-colors"
+                    className="block w-full text-left p-4 text-muted-foreground hover:bg-muted rounded-lg transition-colors border border-transparent hover:border-border"
                   >
                     "{prompt}"
                   </button>
                 ))}
               </div>
-            </Card>
-
-            {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl w-full">
-              <Card className="p-4 text-center hover:shadow-elevated transition-shadow cursor-pointer">
-                <TrendingUp className="h-8 w-8 text-primary mx-auto mb-2" />
-                <h4 className="font-semibold text-foreground">Trending Topics</h4>
-                <p className="text-sm text-muted-foreground">Get ideas from trending content</p>
-              </Card>
-              <Card className="p-4 text-center hover:shadow-elevated transition-shadow cursor-pointer">
-                <Library className="h-8 w-8 text-primary mx-auto mb-2" />
-                <h4 className="font-semibold text-foreground">Content Library</h4>
-                <p className="text-sm text-muted-foreground">Browse ready-to-use templates</p>
-              </Card>
-              <Card className="p-4 text-center hover:shadow-elevated transition-shadow cursor-pointer">
-                <Volume2 className="h-8 w-8 text-primary mx-auto mb-2" />
-                <h4 className="font-semibold text-foreground">Voice & Tone</h4>
-                <p className="text-sm text-muted-foreground">Set your brand voice</p>
-              </Card>
             </div>
           </div>
         ) : (
@@ -96,8 +77,8 @@ const Chat: React.FC = () => {
               <div key={index} className={`flex ${chat.type === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-3xl p-4 rounded-lg ${
                   chat.type === 'user' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-card border border-border'
+                    ? 'bg-foreground text-background' 
+                    : 'bg-muted border border-border'
                 }`}>
                   <p className="whitespace-pre-wrap">{chat.content}</p>
                 </div>
@@ -108,56 +89,69 @@ const Chat: React.FC = () => {
       </div>
 
       {/* Chat Input Area */}
-      <div className="border-t border-chat-border bg-chat p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-chat-input border border-chat-border rounded-lg p-4">
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Ask or search anything"
-              className="border-0 bg-transparent resize-none focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[80px]"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-            />
-            
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm" className="text-muted-foreground">
-                  <Paperclip className="h-4 w-4 mr-2" />
-                  Attach
-                </Button>
-                <Button variant="ghost" size="sm" className="text-muted-foreground">
-                  <Library className="h-4 w-4 mr-2" />
-                  Browse Prompts
-                </Button>
-                <Button variant="ghost" size="sm" className="text-muted-foreground">
-                  <Volume2 className="h-4 w-4 mr-2" />
-                  No Brand Voice
-                </Button>
-              </div>
+      <div className="border-t border-border bg-white">
+        {/* Info Bar */}
+        <div className="px-8 py-3 bg-muted/30 border-b border-border">
+          <div className="flex items-center justify-center text-sm text-muted-foreground">
+            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md mr-2">ℹ</span>
+            Chat shared with everyone in General teamspace.
+            <button className="ml-2 text-blue-600 hover:underline">
+              Switch to private teamspace →
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="relative">
+              <Textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Ask or search anything"
+                className="min-h-[60px] resize-none border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring pr-20"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+              />
               
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm" className="text-muted-foreground">
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  Improve
-                </Button>
+              <div className="absolute bottom-3 right-3">
                 <Button 
                   onClick={handleSendMessage}
                   disabled={!message.trim()}
-                  className="bg-primary hover:bg-primary/90"
+                  size="sm"
+                  className="bg-foreground text-background hover:bg-foreground/90"
                 >
                   Send
                 </Button>
               </div>
             </div>
-          </div>
-          
-          <div className="text-xs text-muted-foreground text-center mt-2">
-            0/2,000 Words Used (0%)
+            
+            <div className="flex items-center justify-between mt-4">
+              <div className="flex items-center space-x-1">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8">
+                  <Paperclip className="h-4 w-4" />
+                  <span className="ml-1">Attach</span>
+                </Button>
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8">
+                  <Library className="h-4 w-4" />
+                  <span className="ml-1">Browse Prompts</span>
+                </Button>
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8">
+                  <Volume2 className="h-4 w-4" />
+                  <span className="ml-1">No Brand Voice</span>
+                </Button>
+              </div>
+              
+              <div className="flex items-center space-x-1">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8">
+                  <TrendingUp className="h-4 w-4" />
+                  <span className="ml-1">Improve</span>
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

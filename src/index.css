@@ -2,78 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Content Creation Autopilot Design System - Copy.ai Exact Match
-All colors MUST be HSL for consistency.
-*/
+/* Copy.ai Exact Match - Clean Black & White Theme */
 
 @layer base {
   :root {
-    /* Base colors - Copy.ai exact match */
+    /* Base colors - Copy.ai clean white */
     --background: 0 0% 100%;
-    --foreground: 240 10% 15%;
+    --foreground: 0 0% 15%;
 
-    /* Card system - Clean white cards */
+    /* Card system */
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 15%;
+    --card-foreground: 0 0% 15%;
 
     /* Popover system */
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 15%;
+    --popover-foreground: 0 0% 15%;
 
-    /* Primary brand - Copy.ai purple */
-    --primary: 262 88% 65%;
+    /* Primary - Minimal black */
+    --primary: 0 0% 15%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 262 88% 75%;
 
-    /* Secondary - Subtle grays */
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 6% 10%;
+    /* Secondary - Light grays */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 15%;
 
-    /* Muted tones - Copy.ai style */
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
+    /* Muted - Copy.ai grays */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    /* Accent - Copy.ai accent colors */
-    --accent: 240 5% 96%;
-    --accent-foreground: 240 6% 10%;
-    --accent-secondary: 262 88% 65%;
+    /* Accent - Light hover states */
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 15%;
 
-    /* Status colors */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-
-    /* UI elements - Copy.ai exact */
-    --border: 240 6% 90%;
-    --input: 240 6% 94%;
-    --ring: 262 88% 65%;
+    /* UI elements */
+    --border: 0 0% 90%;
+    --input: 0 0% 98%;
+    --ring: 0 0% 15%;
 
     --radius: 0.5rem;
 
-    /* Shadows - Copy.ai style */
-    --shadow-soft: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --shadow-elevated: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-glow: 0 0 30px hsl(var(--primary) / 0.3);
+    /* Shadows - Minimal */
+    --shadow-soft: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    --shadow-elevated: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 
-    /* Sidebar system - Copy.ai dark sidebar */
-    --sidebar-background: 240 10% 8%;
-    --sidebar-foreground: 240 10% 85%;
-    --sidebar-primary: 262 88% 65%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 6% 15%;
-    --sidebar-accent-foreground: 240 10% 85%;
-    --sidebar-border: 240 6% 20%;
-    --sidebar-ring: 262 88% 65%;
+    /* Sidebar - Copy.ai dark sidebar */
+    --sidebar-background: 210 11% 15%;
+    --sidebar-foreground: 0 0% 85%;
+    --sidebar-accent: 210 11% 20%;
+    --sidebar-border: 210 11% 25%;
+    --sidebar-text-muted: 0 0% 60%;
 
-    /* Chat system colors */
+    /* Chat system */
     --chat-background: 0 0% 100%;
-    --chat-input: 240 6% 98%;
-    --chat-border: 240 6% 90%;
+    --chat-input: 0 0% 98%;
+    --chat-border: 0 0% 90%;
 
     /* Animation timing */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-smooth: all 0.2s ease-in-out;
   }
 
   .dark {
