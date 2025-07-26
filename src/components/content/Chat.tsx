@@ -2,8 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { Search, Paperclip, Library, Volume2, TrendingUp } from 'lucide-react';
+import { Search, Paperclip, Library, Volume2, TrendingUp, Settings } from 'lucide-react';
 import { caseStudies } from '@/data/caseStudies';
+import { getGeminiResponse, hasApiKey } from '@/lib/gemini';
+import PromptLibrary from './PromptLibrary';
+import ApiKeyDialog from '../ApiKeyDialog';
+import { useToast } from '@/hooks/use-toast';
 
 const Chat: React.FC = () => {
   const [message, setMessage] = useState('');
@@ -15,7 +19,11 @@ const Chat: React.FC = () => {
   ]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<Array<{id: string, title: string}>>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPromptLibrary, setShowPromptLibrary] = useState(false);
+  const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -48,8 +56,13 @@ const Chat: React.FC = () => {
     textareaRef.current?.focus();
   };
 
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
+  const handleSendMessage = async () => {
+    if (!message.trim() || isLoading) return;
+    
+    if (!hasApiKey()) {
+      setShowApiKeyDialog(true);
+      return;
+    }
     
     // Check if message contains case study references
     const referencedCaseStudies = caseStudies.filter(cs => 
@@ -57,29 +70,43 @@ const Chat: React.FC = () => {
     );
     
     // Add user message
-    setChatHistory(prev => [...prev, { type: 'user', content: message }]);
+    const userMessage = { type: 'user', content: message };
+    setChatHistory(prev => [...prev, userMessage]);
     
-    // Simulate AI response with case study context
-    setTimeout(() => {
-      let response = 'I can help you create amazing content! ';
-      
+    const currentMessage = message;
+    setMessage('');
+    setShowSuggestions(false);
+    setIsLoading(true);
+    
+    try {
+      let context = '';
       if (referencedCaseStudies.length > 0) {
-        response += `I see you're referencing "${referencedCaseStudies[0].title}". Based on this case study, here are some insights:\n\n`;
-        response += `• ${referencedCaseStudies[0].content.keyTakeaways[0]}\n`;
-        response += `• ${referencedCaseStudies[0].content.keyTakeaways[1]}\n\n`;
-        response += `Would you like me to create content inspired by this ${referencedCaseStudies[0].niche.toLowerCase()} strategy?`;
-      } else {
-        response += 'Here are some ideas based on your input:\n\n• Create engaging social media captions\n• Generate video script outlines\n• Develop content calendars\n• Write compelling thumbnails descriptions\n\nWhat would you like to work on first?';
+        context = referencedCaseStudies.map(cs => 
+          `Case Study: ${cs.title}\nNiche: ${cs.niche}\nKey Takeaways: ${cs.content.keyTakeaways.join(', ')}\nStrategy: ${cs.content.strategy}\nResults: ${cs.content.results}`
+        ).join('\n\n');
       }
+      
+      const response = await getGeminiResponse(currentMessage, context);
       
       setChatHistory(prev => [...prev, {
         type: 'assistant',
         content: response
       }]);
-    }, 1000);
-    
-    setMessage('');
-    setShowSuggestions(false);
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      toast({
+        title: "Error",
+        description: "Failed to get AI response. Please check your API key.",
+        variant: "destructive"
+      });
+      
+      setChatHistory(prev => [...prev, {
+        type: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again or check your API key configuration.'
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const examplePrompts = [
@@ -191,11 +218,11 @@ const Chat: React.FC = () => {
               <div className="absolute bottom-3 right-3">
                 <Button 
                   onClick={handleSendMessage}
-                  disabled={!message.trim()}
+                  disabled={!message.trim() || isLoading}
                   size="sm"
                   className="bg-foreground text-background hover:bg-foreground/90"
                 >
-                  Send
+                  {isLoading ? 'Sending...' : 'Send'}
                 </Button>
               </div>
             </div>
@@ -206,7 +233,12 @@ const Chat: React.FC = () => {
                   <Paperclip className="h-4 w-4" />
                   <span className="ml-1">Attach</span>
                 </Button>
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-muted-foreground hover:text-foreground h-8"
+                  onClick={() => setShowPromptLibrary(true)}
+                >
                   <Library className="h-4 w-4" />
                   <span className="ml-1">Browse Prompts</span>
                 </Button>
@@ -217,6 +249,15 @@ const Chat: React.FC = () => {
               </div>
               
               <div className="flex items-center space-x-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-muted-foreground hover:text-foreground h-8"
+                  onClick={() => setShowApiKeyDialog(true)}
+                >
+                  <Settings className="h-4 w-4" />
+                  <span className="ml-1">API Settings</span>
+                </Button>
                 <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8">
                   <TrendingUp className="h-4 w-4" />
                   <span className="ml-1">Improve</span>
@@ -226,6 +267,25 @@ const Chat: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Prompt Library Dialog */}
+      <PromptLibrary
+        isOpen={showPromptLibrary}
+        onClose={() => setShowPromptLibrary(false)}
+        onSelectPrompt={(prompt) => setMessage(prompt)}
+      />
+
+      {/* API Key Dialog */}
+      <ApiKeyDialog
+        isOpen={showApiKeyDialog}
+        onClose={() => setShowApiKeyDialog(false)}
+        onSuccess={() => {
+          toast({
+            title: "Success",
+            description: "Gemini AI has been configured successfully!"
+          });
+        }}
+      />
     </div>
   );
 };

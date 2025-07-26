@@ -18,6 +18,7 @@ const ContentCreationApp: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedCaseStudy, setSelectedCaseStudy] = useState<CaseStudy | null>(null);
+  const [chatKey, setChatKey] = useState(0);
 
   const handleToggle = () => {
     setIsCollapsed(!isCollapsed);
@@ -25,6 +26,11 @@ const ContentCreationApp: React.FC = () => {
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
+  };
+
+  const handleCreateNewChat = () => {
+    setActiveTab('chat');
+    setChatKey(prev => prev + 1); // Force re-render of chat component
   };
 
   const renderContent = () => {
@@ -41,7 +47,7 @@ const ContentCreationApp: React.FC = () => {
       case 'dashboard':
         return <Dashboard />;
       case 'chat':
-        return <Chat />;
+        return <Chat key={chatKey} />;
       case 'ideation':
         return <ContentIdeation />;
       case 'creation':
@@ -71,6 +77,7 @@ const ContentCreationApp: React.FC = () => {
         activeTab={activeTab}
         onToggle={handleToggle}
         onTabChange={handleTabChange}
+        onCreateNewChat={handleCreateNewChat}
       />
 
       {/* Main Content */}
