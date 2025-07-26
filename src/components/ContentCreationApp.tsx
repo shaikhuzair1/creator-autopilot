@@ -10,10 +10,14 @@ import Analytics from './content/Analytics';
 import Projects from './content/Projects';
 import Templates from './content/Templates';
 import Chat from './content/Chat';
+import CaseStudies from './content/CaseStudies';
+import CaseStudyDetail from './content/CaseStudyDetail';
+import { CaseStudy } from '@/types/caseStudy';
 
 const ContentCreationApp: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [selectedCaseStudy, setSelectedCaseStudy] = useState<CaseStudy | null>(null);
 
   const handleToggle = () => {
     setIsCollapsed(!isCollapsed);
@@ -24,6 +28,15 @@ const ContentCreationApp: React.FC = () => {
   };
 
   const renderContent = () => {
+    if (activeTab === 'case-studies' && selectedCaseStudy) {
+      return (
+        <CaseStudyDetail 
+          caseStudy={selectedCaseStudy} 
+          onBack={() => setSelectedCaseStudy(null)} 
+        />
+      );
+    }
+
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard />;
@@ -43,6 +56,8 @@ const ContentCreationApp: React.FC = () => {
         return <Projects />;
       case 'templates':
         return <Templates />;
+      case 'case-studies':
+        return <CaseStudies onSelectCaseStudy={setSelectedCaseStudy} />;
       default:
         return <Dashboard />;
     }

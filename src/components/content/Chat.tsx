@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Search, Paperclip, Library, Volume2, TrendingUp } from 'lucide-react';
+import { caseStudies } from '@/data/caseStudies';
 
 const Chat: React.FC = () => {
   const [message, setMessage] = useState('');
@@ -12,22 +13,73 @@ const Chat: React.FC = () => {
       content: 'Welcome to Chat by Creator Autopilot. Get started by writing a task and Chat can do the rest. Not sure where to start? Check out the Prompt Library for inspiration.'
     }
   ]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<Array<{id: string, title: string}>>([]);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setMessage(value);
+    
+    // Check for @ mentions
+    const atIndex = value.lastIndexOf('@');
+    if (atIndex !== -1 && atIndex === value.length - 1) {
+      // Show all case studies when @ is typed
+      setSuggestions(caseStudies.map(cs => ({ id: cs.id, title: cs.title })));
+      setShowSuggestions(true);
+    } else if (atIndex !== -1) {
+      // Filter case studies based on what's typed after @
+      const searchTerm = value.slice(atIndex + 1).toLowerCase();
+      const filtered = caseStudies
+        .filter(cs => cs.title.toLowerCase().includes(searchTerm))
+        .map(cs => ({ id: cs.id, title: cs.title }));
+      setSuggestions(filtered);
+      setShowSuggestions(filtered.length > 0);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: {id: string, title: string}) => {
+    const atIndex = message.lastIndexOf('@');
+    const newMessage = message.slice(0, atIndex) + `@${suggestion.title} `;
+    setMessage(newMessage);
+    setShowSuggestions(false);
+    textareaRef.current?.focus();
+  };
 
   const handleSendMessage = () => {
     if (!message.trim()) return;
     
+    // Check if message contains case study references
+    const referencedCaseStudies = caseStudies.filter(cs => 
+      message.includes(`@${cs.title}`)
+    );
+    
     // Add user message
     setChatHistory(prev => [...prev, { type: 'user', content: message }]);
     
-    // Simulate AI response
+    // Simulate AI response with case study context
     setTimeout(() => {
+      let response = 'I can help you create amazing content! ';
+      
+      if (referencedCaseStudies.length > 0) {
+        response += `I see you're referencing "${referencedCaseStudies[0].title}". Based on this case study, here are some insights:\n\n`;
+        response += `• ${referencedCaseStudies[0].content.keyTakeaways[0]}\n`;
+        response += `• ${referencedCaseStudies[0].content.keyTakeaways[1]}\n\n`;
+        response += `Would you like me to create content inspired by this ${referencedCaseStudies[0].niche.toLowerCase()} strategy?`;
+      } else {
+        response += 'Here are some ideas based on your input:\n\n• Create engaging social media captions\n• Generate video script outlines\n• Develop content calendars\n• Write compelling thumbnails descriptions\n\nWhat would you like to work on first?';
+      }
+      
       setChatHistory(prev => [...prev, {
         type: 'assistant',
-        content: 'I can help you create amazing content! Here are some ideas based on your input:\n\n• Create engaging social media captions\n• Generate video script outlines\n• Develop content calendars\n• Write compelling thumbnails descriptions\n\nWhat would you like to work on first?'
+        content: response
       }]);
     }, 1000);
     
     setMessage('');
+    setShowSuggestions(false);
   };
 
   const examplePrompts = [
@@ -105,17 +157,36 @@ const Chat: React.FC = () => {
           <div className="max-w-4xl mx-auto">
             <div className="relative">
               <Textarea
+                ref={textareaRef}
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Ask or search anything"
+                onChange={handleInputChange}
+                placeholder="Ask or search anything (type @ to reference case studies)"
                 className="min-h-[60px] resize-none border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring pr-20"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     handleSendMessage();
                   }
+                  if (e.key === 'Escape') {
+                    setShowSuggestions(false);
+                  }
                 }}
               />
+              
+              {/* Case Study Suggestions */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute bottom-full mb-2 left-0 right-0 bg-background border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
+                  {suggestions.map((suggestion) => (
+                    <button
+                      key={suggestion.id}
+                      className="w-full text-left px-4 py-2 hover:bg-muted transition-colors text-sm"
+                      onClick={() => handleSuggestionClick(suggestion)}
+                    >
+                      <span className="font-medium">@{suggestion.title}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
               
               <div className="absolute bottom-3 right-3">
                 <Button 

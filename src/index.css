@@ -45,12 +45,12 @@
     --shadow-soft: 0 1px 3px 0 rgb(0 0 0 / 0.1);
     --shadow-elevated: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 
-    /* Sidebar - Copy.ai dark sidebar */
-    --sidebar-background: 210 11% 15%;
-    --sidebar-foreground: 0 0% 85%;
-    --sidebar-accent: 210 11% 20%;
-    --sidebar-border: 210 11% 25%;
-    --sidebar-text-muted: 0 0% 60%;
+    /* Sidebar - White sidebar like Copy.ai */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 15%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-text-muted: 0 0% 45%;
 
     /* Chat system */
     --chat-background: 0 0% 100%;

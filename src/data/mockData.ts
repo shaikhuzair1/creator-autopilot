@@ -12,6 +12,7 @@ export const navigationItems: NavigationItem[] = [
   { id: 'analytics', label: 'Analytics', icon: '📊', path: '/analytics', description: 'Performance insights' },
   { id: 'projects', label: 'Projects', icon: '📂', path: '/projects', description: 'Manage campaigns' },
   { id: 'templates', label: 'Templates', icon: '🖼️', path: '/templates', description: 'Ready-to-use templates' },
+  { id: 'case-studies', label: 'Case Studies', icon: '📋', path: '/case-studies', description: 'Success stories & examples' },
 ];
 
 export const contentIdeas: ContentIdea[] = [
