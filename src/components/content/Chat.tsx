@@ -182,24 +182,7 @@ const Chat: React.FC = () => {
 
         <div className="p-6">
           <div className="max-w-4xl mx-auto">
-            <div className="relative">
-              <Textarea
-                ref={textareaRef}
-                value={message}
-                onChange={handleInputChange}
-                placeholder="Ask or search anything (type @ to reference case studies)"
-                className="min-h-[60px] resize-none border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring pr-20"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                  if (e.key === 'Escape') {
-                    setShowSuggestions(false);
-                  }
-                }}
-              />
-              
+            <div className="relative border border-border rounded-lg bg-background focus-within:ring-2 focus-within:ring-ring">
               {/* Case Study Suggestions */}
               {showSuggestions && suggestions.length > 0 && (
                 <div className="absolute bottom-full mb-2 left-0 right-0 bg-background border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
@@ -215,53 +198,62 @@ const Chat: React.FC = () => {
                 </div>
               )}
               
-              <div className="absolute bottom-3 right-3">
-                <Button 
-                  onClick={handleSendMessage}
-                  disabled={!message.trim() || isLoading}
-                  size="sm"
-                  className="bg-foreground text-background hover:bg-foreground/90"
-                >
-                  {isLoading ? 'Sending...' : 'Send'}
-                </Button>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center space-x-1">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8">
-                  <Paperclip className="h-4 w-4" />
-                  <span className="ml-1">Attach</span>
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-muted-foreground hover:text-foreground h-8"
-                  onClick={() => setShowPromptLibrary(true)}
-                >
-                  <Library className="h-4 w-4" />
-                  <span className="ml-1">Browse Prompts</span>
-                </Button>
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8">
-                  <Volume2 className="h-4 w-4" />
-                  <span className="ml-1">No Brand Voice</span>
-                </Button>
-              </div>
-              
-              <div className="flex items-center space-x-1">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-muted-foreground hover:text-foreground h-8"
-                  onClick={() => setShowApiKeyDialog(true)}
-                >
-                  <Settings className="h-4 w-4" />
-                  <span className="ml-1">API Settings</span>
-                </Button>
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="ml-1">Improve</span>
-                </Button>
+              <div className="flex items-end p-3 gap-3">
+                {/* Left side buttons */}
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8 px-2">
+                    <Paperclip className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-muted-foreground hover:text-foreground h-8 px-2"
+                    onClick={() => setShowPromptLibrary(true)}
+                  >
+                    <Library className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                {/* Textarea */}
+                <Textarea
+                  ref={textareaRef}
+                  value={message}
+                  onChange={handleInputChange}
+                  placeholder="Ask or search anything (type @ to reference case studies)"
+                  className="flex-1 min-h-[40px] resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                    if (e.key === 'Escape') {
+                      setShowSuggestions(false);
+                    }
+                  }}
+                />
+                
+                {/* Right side buttons */}
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8 px-2">
+                    <Volume2 className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-muted-foreground hover:text-foreground h-8 px-2"
+                    onClick={() => setShowApiKeyDialog(true)}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    onClick={handleSendMessage}
+                    disabled={!message.trim() || isLoading}
+                    size="sm"
+                    className="bg-foreground text-background hover:bg-foreground/90 h-8"
+                  >
+                    {isLoading ? 'Sending...' : 'Send'}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
