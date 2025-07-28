@@ -12,6 +12,7 @@ import Templates from './content/Templates';
 import Chat from './content/Chat';
 import CaseStudies from './content/CaseStudies';
 import CaseStudyDetail from './content/CaseStudyDetail';
+import Profile from './content/Profile';
 import { CaseStudy } from '@/types/caseStudy';
 
 const ContentCreationApp: React.FC = () => {
@@ -64,6 +65,8 @@ const ContentCreationApp: React.FC = () => {
         return <Templates />;
       case 'case-studies':
         return <CaseStudies onSelectCaseStudy={setSelectedCaseStudy} />;
+      case 'profile':
+        return <Profile />;
       default:
         return <Dashboard />;
     }
@@ -72,16 +75,18 @@ const ContentCreationApp: React.FC = () => {
   return (
     <div className="flex h-screen bg-background w-full overflow-hidden">
       {/* Sidebar */}
-      <Sidebar
-        isCollapsed={isCollapsed}
-        activeTab={activeTab}
-        onToggle={handleToggle}
-        onTabChange={handleTabChange}
-        onCreateNewChat={handleCreateNewChat}
-      />
+      <div className="flex-shrink-0">
+        <Sidebar
+          isCollapsed={isCollapsed}
+          activeTab={activeTab}
+          onToggle={handleToggle}
+          onTabChange={handleTabChange}
+          onCreateNewChat={handleCreateNewChat}
+        />
+      </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Header */}
         <ContentHeader activeTab={activeTab} />
 

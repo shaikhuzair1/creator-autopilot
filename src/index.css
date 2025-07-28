@@ -41,9 +41,24 @@
 
     --radius: 0.5rem;
 
+    /* Status colors */
+    --success: 120 50% 50%;
+    --success-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Accent variants */
+    --accent-secondary: 0 0% 94%;
+    --primary-glow: 0 0% 25%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-secondary)));
+
     /* Shadows - Minimal */
     --shadow-soft: 0 1px 3px 0 rgb(0 0 0 / 0.1);
     --shadow-elevated: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-glow: 0 0 20px hsl(var(--primary) / 0.2);
 
     /* Sidebar - White sidebar like Copy.ai */
     --sidebar-background: 0 0% 100%;
