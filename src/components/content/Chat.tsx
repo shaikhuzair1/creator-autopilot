@@ -4,9 +4,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Search, Paperclip, Library, Volume2, TrendingUp, Settings } from 'lucide-react';
 import { caseStudies } from '@/data/caseStudies';
-import { getGeminiResponse, hasApiKey } from '@/lib/gemini';
+import { scriptTemplates, nicheTipics } from '@/data/mockData';
+import { callLLM, hasApiKey, LLM_PROVIDERS } from '@/lib/llmServices';
 import PromptLibrary from './PromptLibrary';
-import ApiKeyDialog from '../ApiKeyDialog';
+import { LLMSelector } from '../LLMSelector';
 import { useToast } from '@/hooks/use-toast';
 
 const Chat: React.FC = () => {
@@ -18,10 +19,13 @@ const Chat: React.FC = () => {
     }
   ]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [suggestions, setSuggestions] = useState<Array<{id: string, title: string}>>([]);
+  const [suggestions, setSuggestions] = useState<Array<{id: string, title: string, type?: string}>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showPromptLibrary, setShowPromptLibrary] = useState(false);
-  const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState('gemini');
+  const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash');
+  const [selectedNiche, setSelectedNiche] = useState('');
+  const [showTopicSuggestions, setShowTopicSuggestions] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
 
@@ -32,15 +36,21 @@ const Chat: React.FC = () => {
     // Check for @ mentions
     const atIndex = value.lastIndexOf('@');
     if (atIndex !== -1 && atIndex === value.length - 1) {
-      // Show all case studies when @ is typed
-      setSuggestions(caseStudies.map(cs => ({ id: cs.id, title: cs.title })));
+      // Show combined suggestions
+      const caseStudySuggestions = caseStudies.map(cs => ({ id: cs.id, title: cs.title, type: 'case-study' }));
+      const templateSuggestions = scriptTemplates.map(st => ({ id: st.id, title: st.title, type: 'template' }));
+      setSuggestions([...caseStudySuggestions, ...templateSuggestions]);
       setShowSuggestions(true);
     } else if (atIndex !== -1) {
-      // Filter case studies based on what's typed after @
+      // Filter suggestions based on what's typed after @
       const searchTerm = value.slice(atIndex + 1).toLowerCase();
-      const filtered = caseStudies
+      const caseStudyFiltered = caseStudies
         .filter(cs => cs.title.toLowerCase().includes(searchTerm))
-        .map(cs => ({ id: cs.id, title: cs.title }));
+        .map(cs => ({ id: cs.id, title: cs.title, type: 'case-study' }));
+      const templateFiltered = scriptTemplates
+        .filter(st => st.title.toLowerCase().includes(searchTerm))
+        .map(st => ({ id: st.id, title: st.title, type: 'template' }));
+      const filtered = [...caseStudyFiltered, ...templateFiltered];
       setSuggestions(filtered);
       setShowSuggestions(filtered.length > 0);
     } else {
@@ -48,7 +58,7 @@ const Chat: React.FC = () => {
     }
   };
 
-  const handleSuggestionClick = (suggestion: {id: string, title: string}) => {
+  const handleSuggestionClick = (suggestion: {id: string, title: string, type?: string}) => {
     const atIndex = message.lastIndexOf('@');
     const newMessage = message.slice(0, atIndex) + `@${suggestion.title} `;
     setMessage(newMessage);
@@ -59,14 +69,21 @@ const Chat: React.FC = () => {
   const handleSendMessage = async () => {
     if (!message.trim() || isLoading) return;
     
-    if (!hasApiKey()) {
-      setShowApiKeyDialog(true);
+    if (!hasApiKey(selectedProvider)) {
+      toast({
+        title: "API Key Required",
+        description: `Please configure your ${LLM_PROVIDERS.find(p => p.id === selectedProvider)?.name} API key first.`,
+        variant: "destructive"
+      });
       return;
     }
     
-    // Check if message contains case study references
+    // Check if message contains case study or template references
     const referencedCaseStudies = caseStudies.filter(cs => 
       message.includes(`@${cs.title}`)
+    );
+    const referencedTemplates = scriptTemplates.filter(st => 
+      message.includes(`@${st.title}`)
     );
     
     // Add user message
@@ -80,23 +97,32 @@ const Chat: React.FC = () => {
     
     try {
       let context = '';
+      
       if (referencedCaseStudies.length > 0) {
-        context = referencedCaseStudies.map(cs => 
+        context += referencedCaseStudies.map(cs => 
           `Case Study: ${cs.title}\nNiche: ${cs.niche}\nKey Takeaways: ${cs.content.keyTakeaways.join(', ')}\nStrategy: ${cs.content.strategy}\nResults: ${cs.content.results}`
         ).join('\n\n');
       }
       
-      const response = await getGeminiResponse(currentMessage, context);
+      if (referencedTemplates.length > 0) {
+        if (context) context += '\n\n';
+        context += referencedTemplates.map(st => 
+          `Script Template: ${st.title}\nCategory: ${st.category}\nDescription: ${st.description}\nContent: ${st.content}`
+        ).join('\n\n');
+      }
+      
+      const apiKey = localStorage.getItem(`${selectedProvider}_api_key`) || '';
+      const response = await callLLM(currentMessage, selectedProvider, selectedModel, apiKey, context);
       
       setChatHistory(prev => [...prev, {
         type: 'assistant',
-        content: response
+        content: response.content
       }]);
     } catch (error) {
       console.error('Error getting AI response:', error);
       toast({
         title: "Error",
-        description: "Failed to get AI response. Please check your API key.",
+        description: "Failed to get AI response. Please check your API key and try again.",
         variant: "destructive"
       });
       
@@ -107,6 +133,11 @@ const Chat: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const generateTopicSuggestions = (niche: string) => {
+    const topics = nicheTipics[niche as keyof typeof nicheTipics] || [];
+    return topics;
   };
 
   const examplePrompts = [
@@ -131,11 +162,50 @@ const Chat: React.FC = () => {
               </p>
             </div>
 
+            {/* AI Topic Suggestions */}
+            <div className="w-full max-w-2xl mb-8">
+              <div className="flex items-center space-x-3 mb-4">
+                <TrendingUp className="h-5 w-5 text-foreground" />
+                <h3 className="font-medium text-foreground">AI Topic Suggestions by Niche</h3>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+                {Object.keys(nicheTipics).map((niche) => (
+                  <button
+                    key={niche}
+                    onClick={() => {
+                      setSelectedNiche(niche);
+                      setShowTopicSuggestions(true);
+                    }}
+                    className="p-3 text-sm bg-muted hover:bg-muted/80 rounded-lg transition-colors border border-transparent hover:border-border capitalize"
+                  >
+                    {niche}
+                  </button>
+                ))}
+              </div>
+              
+              {showTopicSuggestions && selectedNiche && (
+                <div className="space-y-2">
+                  <h4 className="font-medium text-foreground capitalize">{selectedNiche} Content Ideas:</h4>
+                  <div className="space-y-2">
+                    {generateTopicSuggestions(selectedNiche).map((topic, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setMessage(`Create content about: ${topic}`)}
+                        className="block w-full text-left p-3 text-sm text-muted-foreground hover:bg-muted rounded-lg transition-colors border border-transparent hover:border-border"
+                      >
+                        💡 {topic}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Real-Time Search Section */}
             <div className="w-full max-w-2xl">
               <div className="flex items-center space-x-3 mb-6">
                 <Search className="h-5 w-5 text-foreground" />
-                <h3 className="font-medium text-foreground">Real-Time Search</h3>
+                <h3 className="font-medium text-foreground">Example Prompts</h3>
               </div>
               <div className="space-y-3">
                 {examplePrompts.map((prompt, index) => (
@@ -181,9 +251,17 @@ const Chat: React.FC = () => {
         </div>
 
         <div className="p-6">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto space-y-4">
+            {/* LLM Selector */}
+            <LLMSelector
+              selectedProvider={selectedProvider}
+              selectedModel={selectedModel}
+              onProviderChange={setSelectedProvider}
+              onModelChange={setSelectedModel}
+            />
+            
             <div className="relative border border-border rounded-lg bg-background focus-within:ring-2 focus-within:ring-ring">
-              {/* Case Study Suggestions */}
+              {/* Suggestions */}
               {showSuggestions && suggestions.length > 0 && (
                 <div className="absolute bottom-full mb-2 left-0 right-0 bg-background border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
                   {suggestions.map((suggestion) => (
@@ -192,7 +270,12 @@ const Chat: React.FC = () => {
                       className="w-full text-left px-4 py-2 hover:bg-muted transition-colors text-sm"
                       onClick={() => handleSuggestionClick(suggestion)}
                     >
-                      <span className="font-medium">@{suggestion.title}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded capitalize">
+                          {suggestion.type === 'case-study' ? 'Case Study' : 'Template'}
+                        </span>
+                        <span className="font-medium">@{suggestion.title}</span>
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -219,7 +302,7 @@ const Chat: React.FC = () => {
                   ref={textareaRef}
                   value={message}
                   onChange={handleInputChange}
-                  placeholder="Ask or search anything (type @ to reference case studies)"
+                  placeholder="Ask or search anything (type @ to reference case studies or templates)"
                   className="flex-1 min-h-[40px] resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -236,14 +319,6 @@ const Chat: React.FC = () => {
                 <div className="flex items-center gap-1">
                   <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8 px-2">
                     <Volume2 className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-muted-foreground hover:text-foreground h-8 px-2"
-                    onClick={() => setShowApiKeyDialog(true)}
-                  >
-                    <Settings className="h-4 w-4" />
                   </Button>
                   <Button 
                     onClick={handleSendMessage}
@@ -267,17 +342,6 @@ const Chat: React.FC = () => {
         onSelectPrompt={(prompt) => setMessage(prompt)}
       />
 
-      {/* API Key Dialog */}
-      <ApiKeyDialog
-        isOpen={showApiKeyDialog}
-        onClose={() => setShowApiKeyDialog(false)}
-        onSuccess={() => {
-          toast({
-            title: "Success",
-            description: "Gemini AI has been configured successfully!"
-          });
-        }}
-      />
     </div>
   );
 };

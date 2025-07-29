@@ -19,7 +19,7 @@ export const getGeminiResponse = async (prompt: string, context?: string): Promi
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
     let fullPrompt = prompt;
     if (context) {

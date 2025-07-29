@@ -213,12 +213,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, activeTab, onToggle, onT
         
         {/* Upgrade Button */}
         {!isCollapsed ? (
-          <Button className="w-full bg-sidebar-foreground text-sidebar hover:bg-sidebar-foreground/90 text-sm font-medium">
+          <Button 
+            className="w-full bg-sidebar-foreground text-sidebar hover:bg-sidebar-foreground/90 text-sm font-medium"
+            onClick={() => onTabChange('pricing')}
+          >
             Upgrade Your Plan
           </Button>
         ) : (
           <div className="flex justify-center">
-            <Button size="icon" className="bg-sidebar-foreground text-sidebar hover:bg-sidebar-foreground/90">
+            <Button 
+              size="icon" 
+              className="bg-sidebar-foreground text-sidebar hover:bg-sidebar-foreground/90"
+              onClick={() => onTabChange('pricing')}
+            >
               ⚡
             </Button>
           </div>
