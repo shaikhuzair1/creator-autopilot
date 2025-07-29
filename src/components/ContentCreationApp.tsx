@@ -4,7 +4,7 @@ import ContentHeader from './ContentHeader';
 import Dashboard from './content/Dashboard';
 import ContentIdeation from './content/ContentIdeation';
 import ContentCreation from './content/ContentCreation';
-import VideoEditing from './content/VideoEditing';
+import { ScriptTemplates } from './content/ScriptTemplates';
 import Scheduling from './content/Scheduling';
 import Analytics from './content/Analytics';
 import Projects from './content/Projects';
@@ -13,6 +13,7 @@ import Chat from './content/Chat';
 import CaseStudies from './content/CaseStudies';
 import CaseStudyDetail from './content/CaseStudyDetail';
 import Profile from './content/Profile';
+import { Pricing } from './content/Pricing';
 import { CaseStudy } from '@/types/caseStudy';
 
 const ContentCreationApp: React.FC = () => {
@@ -53,8 +54,10 @@ const ContentCreationApp: React.FC = () => {
         return <ContentIdeation />;
       case 'creation':
         return <ContentCreation />;
-      case 'video':
-        return <VideoEditing />;
+      case 'script-templates':
+        return <ScriptTemplates />;
+      case 'pricing':
+        return <Pricing />;
       case 'scheduling':
         return <Scheduling />;
       case 'analytics':

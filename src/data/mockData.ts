@@ -7,7 +7,7 @@ export const navigationItems: NavigationItem[] = [
   { id: 'chat', label: 'Chat', icon: '💬', path: '/chat', description: 'AI-powered assistant' },
   { id: 'ideation', label: 'Content Ideation', icon: '💡', path: '/ideation', description: 'Generate content ideas' },
   { id: 'creation', label: 'Content Creation', icon: '✍️', path: '/creation', description: 'Create captions & scripts' },
-  { id: 'video', label: 'Video Editing', icon: '🎥', path: '/video', description: 'Generate video clips' },
+  { id: 'script-templates', label: 'Script Templates', icon: '📜', path: '/script-templates', description: 'Professional script templates' },
   { id: 'scheduling', label: 'Scheduling', icon: '📅', path: '/scheduling', description: 'Content calendar' },
   { id: 'analytics', label: 'Analytics', icon: '📊', path: '/analytics', description: 'Performance insights' },
   { id: 'projects', label: 'Projects', icon: '📂', path: '/projects', description: 'Manage campaigns' },

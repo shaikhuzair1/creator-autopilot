@@ -2,11 +2,23 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { projects } from '@/data/mockData';
-import { Folder, Plus, Edit, Trash2, Eye, MoreHorizontal } from 'lucide-react';
+import { Folder, Plus, Edit, Trash2, Eye, MoreHorizontal, Calendar, Users } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Project } from '@/types';
 
 const Projects: React.FC = () => {
   const [filter, setFilter] = useState<string>('All');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [newStatus, setNewStatus] = useState<string>('');
+  const { toast } = useToast();
+  
   const filters = ['All', 'Draft', 'In Progress', 'Published', 'Scheduled'];
 
   const filteredProjects = projects.filter(project => 
@@ -21,6 +33,34 @@ const Projects: React.FC = () => {
       case 'Draft': return 'bg-muted-foreground/10 text-muted-foreground border-muted-foreground/20';
       default: return 'bg-muted-foreground/10 text-muted-foreground border-muted-foreground/20';
     }
+  };
+
+  const handleViewDetails = (project: Project) => {
+    setSelectedProject(project);
+    setIsDetailsOpen(true);
+  };
+
+  const handleChangeStatus = (project: Project) => {
+    setSelectedProject(project);
+    setNewStatus(project.status);
+    setIsStatusDialogOpen(true);
+  };
+
+  const handleUpdateStatus = () => {
+    if (selectedProject && newStatus) {
+      toast({
+        title: "Status Updated",
+        description: `Project "${selectedProject.title}" status changed to ${newStatus}`,
+      });
+      setIsStatusDialogOpen(false);
+    }
+  };
+
+  const handleRemoveProject = (project: Project) => {
+    toast({
+      title: "Project Removed",
+      description: `Project "${project.title}" has been removed`,
+    });
   };
 
   return (
@@ -65,71 +105,72 @@ const Projects: React.FC = () => {
         ))}
       </div>
 
-      {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProjects.map((project) => (
-          <Card key={project.id} className="shadow-soft hover:shadow-elevated transition-all duration-200 hover-scale group">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                    {project.title}
-                  </CardTitle>
-                  <div className="flex items-center space-x-2 mt-2">
+      {/* Projects Table */}
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Project Name</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Platform</TableHead>
+                <TableHead>Last Modified</TableHead>
+                <TableHead>Views</TableHead>
+                <TableHead>Engagement</TableHead>
+                <TableHead className="w-[50px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredProjects.map((project) => (
+                <TableRow key={project.id}>
+                  <TableCell>
+                    <div className="font-medium text-foreground">{project.title}</div>
+                  </TableCell>
+                  <TableCell>
                     <Badge className={getStatusColor(project.status)}>
                       {project.status}
                     </Badge>
-                  </div>
-                </div>
-                <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="text-sm text-muted-foreground">
-                  <strong>Platform:</strong> {project.platform}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  <strong>Last modified:</strong> {project.lastModified}
-                </div>
-              </div>
-
-              {(project.views || project.engagement) && (
-                <div className="grid grid-cols-2 gap-4 p-3 bg-muted rounded-lg">
-                  {project.views && (
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-primary">{project.views.toLocaleString()}</div>
-                      <div className="text-xs text-muted-foreground">Views</div>
-                    </div>
-                  )}
-                  {project.engagement && (
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-primary">{project.engagement}%</div>
-                      <div className="text-xs text-muted-foreground">Engagement</div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="flex space-x-2">
-                <Button variant="default" size="sm" className="flex-1">
-                  <Edit className="mr-2 h-3 w-3" />
-                  Edit
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Eye className="mr-2 h-3 w-3" />
-                  View
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Trash2 className="mr-2 h-3 w-3" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                  </TableCell>
+                  <TableCell>{project.platform}</TableCell>
+                  <TableCell>{project.lastModified}</TableCell>
+                  <TableCell>
+                    {project.views ? project.views.toLocaleString() : '-'}
+                  </TableCell>
+                  <TableCell>
+                    {project.engagement ? `${project.engagement}%` : '-'}
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewDetails(project)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleChangeStatus(project)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Change Status
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleRemoveProject(project)}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Remove
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       {/* Project Templates */}
       <Card className="shadow-soft">
@@ -175,6 +216,86 @@ const Projects: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Project Details Dialog */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{selectedProject?.title}</DialogTitle>
+            <DialogDescription>Project details and information</DialogDescription>
+          </DialogHeader>
+          {selectedProject && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Status</h4>
+                  <Badge className={getStatusColor(selectedProject.status)}>
+                    {selectedProject.status}
+                  </Badge>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Platform</h4>
+                  <p className="text-foreground">{selectedProject.platform}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Last Modified</h4>
+                  <p className="text-foreground">{selectedProject.lastModified}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Views</h4>
+                  <p className="text-foreground">{selectedProject.views ? selectedProject.views.toLocaleString() : 'N/A'}</p>
+                </div>
+              </div>
+              {selectedProject.engagement && (
+                <div>
+                  <h4 className="font-semibold mb-2">Engagement Rate</h4>
+                  <p className="text-foreground">{selectedProject.engagement}%</p>
+                </div>
+              )}
+              <div className="flex gap-2 pt-4">
+                <Button variant="default">
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Project
+                </Button>
+                <Button variant="outline" onClick={() => setIsDetailsOpen(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Status Dialog */}
+      <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Project Status</DialogTitle>
+            <DialogDescription>
+              Update the status of "{selectedProject?.title}"
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Select value={newStatus} onValueChange={setNewStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select new status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Draft">Draft</SelectItem>
+                <SelectItem value="In Progress">In Progress</SelectItem>
+                <SelectItem value="Published">Published</SelectItem>
+                <SelectItem value="Scheduled">Scheduled</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex gap-2">
+              <Button onClick={handleUpdateStatus}>Update Status</Button>
+              <Button variant="outline" onClick={() => setIsStatusDialogOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
