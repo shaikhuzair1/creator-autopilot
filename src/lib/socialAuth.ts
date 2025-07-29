@@ -47,7 +47,7 @@ export const SOCIAL_PLATFORMS: Record<string, SocialPlatform> = {
   youtube: {
     id: 'youtube',
     name: 'YouTube',
-    clientId: process.env.GOOGLE_CLIENT_ID || '',
+    clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
     scopes: [
       'https://www.googleapis.com/auth/youtube.readonly',
       'https://www.googleapis.com/auth/yt-analytics.readonly'
@@ -57,7 +57,7 @@ export const SOCIAL_PLATFORMS: Record<string, SocialPlatform> = {
   instagram: {
     id: 'instagram',
     name: 'Instagram',
-    clientId: process.env.FACEBOOK_APP_ID || '',
+    clientId: import.meta.env.VITE_FACEBOOK_APP_ID || '',
     scopes: [
       'instagram_basic',
       'instagram_manage_insights',
@@ -68,7 +68,7 @@ export const SOCIAL_PLATFORMS: Record<string, SocialPlatform> = {
   twitter: {
     id: 'twitter',
     name: 'Twitter',
-    clientId: process.env.TWITTER_CLIENT_ID || '',
+    clientId: import.meta.env.VITE_TWITTER_CLIENT_ID || '',
     scopes: ['tweet.read', 'users.read', 'offline.access'],
     authUrl: 'https://twitter.com/i/oauth2/authorize'
   }
