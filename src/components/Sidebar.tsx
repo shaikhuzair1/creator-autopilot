@@ -21,7 +21,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, activeTab, onToggle, onT
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   return (
     <div className={cn(
-      "h-screen bg-sidebar border-r border-sidebar-border transition-smooth flex flex-col overflow-hidden",
+      "h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out flex flex-col overflow-hidden flex-shrink-0",
       isCollapsed ? "w-16 min-w-16" : "w-64 min-w-64"
     )}>
       {/* Header */}

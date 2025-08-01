@@ -59,6 +59,10 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
                 <ChatPanel 
                   isMinimized={isChatMinimized}
                   onToggleMinimize={() => setIsChatMinimized(!isChatMinimized)}
+                  onAddToScript={(content) => {
+                    // Add content to the current cursor position in the editor
+                    console.log('Adding to script:', content);
+                  }}
                 />
               </ResizablePanel>
             </>
@@ -70,6 +74,9 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
           <ChatPanel 
             isMinimized={true}
             onToggleMinimize={() => setIsChatMinimized(false)}
+            onAddToScript={(content) => {
+              console.log('Adding to script:', content);
+            }}
           />
         )}
       </div>

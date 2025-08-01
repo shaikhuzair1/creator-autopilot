@@ -34,12 +34,14 @@ interface ChatPanelProps {
   isMinimized?: boolean;
   onToggleMinimize?: () => void;
   onClose?: () => void;
+  onAddToScript?: (content: string) => void;
 }
 
 const ChatPanel: React.FC<ChatPanelProps> = ({ 
   isMinimized = false, 
   onToggleMinimize,
-  onClose 
+  onClose,
+  onAddToScript
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -150,7 +152,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         ).join('\n\n');
       }
       
-      const apiKey = localStorage.getItem(`${selectedProvider}_api_key`) || '';
+      const apiKey = localStorage.getItem(`${selectedProvider}_api_key`) || 'AIzaSyBHwP9KH6Lg4h7YqGP3H_JoKvQMqRtdWz8';
       const response = await callLLM(currentMessage, selectedProvider, selectedModel, apiKey, context);
       
       const assistantMessage: ChatMessage = {
@@ -231,16 +233,28 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
                   ? 'bg-primary text-primary-foreground' 
                   : 'bg-muted border border-border'
               }`}>
-                <div className="flex items-start gap-2">
-                  {msg.type === 'assistant' && <Bot className="h-4 w-4 mt-0.5 text-primary" />}
-                  {msg.type === 'user' && <User className="h-4 w-4 mt-0.5" />}
-                  <div className="flex-1">
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                    <p className="text-xs opacity-60 mt-1">
-                      {msg.timestamp.toLocaleTimeString()}
-                    </p>
+                  <div className="flex items-start gap-2">
+                    {msg.type === 'assistant' && <Bot className="h-4 w-4 mt-0.5 text-primary" />}
+                    {msg.type === 'user' && <User className="h-4 w-4 mt-0.5" />}
+                    <div className="flex-1">
+                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-xs opacity-60">
+                          {msg.timestamp.toLocaleTimeString()}
+                        </p>
+                        {msg.type === 'assistant' && onAddToScript && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 text-xs"
+                            onClick={() => onAddToScript(msg.content)}
+                          >
+                            Add to Script
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
               </div>
             </div>
           ))}
