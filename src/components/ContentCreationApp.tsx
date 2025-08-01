@@ -14,11 +14,12 @@ import CaseStudies from './content/CaseStudies';
 import CaseStudyDetail from './content/CaseStudyDetail';
 import Profile from './content/Profile';
 import { Pricing } from './content/Pricing';
+import CursorWorkspace from './CursorWorkspace';
 import { CaseStudy } from '@/types/caseStudy';
 
 const ContentCreationApp: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('creation');
   const [selectedCaseStudy, setSelectedCaseStudy] = useState<CaseStudy | null>(null);
   const [chatKey, setChatKey] = useState(0);
 
@@ -36,6 +37,19 @@ const ContentCreationApp: React.FC = () => {
   };
 
   const renderContent = () => {
+    // Use Cursor workspace for creation and chat tabs
+    if (activeTab === 'creation' || activeTab === 'chat') {
+      return (
+        <CursorWorkspace
+          isCollapsed={isCollapsed}
+          activeTab={activeTab}
+          onToggle={handleToggle}
+          onTabChange={handleTabChange}
+          onCreateNewChat={handleCreateNewChat}
+        />
+      );
+    }
+
     if (activeTab === 'case-studies' && selectedCaseStudy) {
       return (
         <CaseStudyDetail 
@@ -48,12 +62,8 @@ const ContentCreationApp: React.FC = () => {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard />;
-      case 'chat':
-        return <Chat key={chatKey} />;
       case 'ideation':
         return <ContentIdeation />;
-      case 'creation':
-        return <ContentCreation />;
       case 'script-templates':
         return <ScriptTemplates />;
       case 'pricing':
@@ -77,27 +87,34 @@ const ContentCreationApp: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-background w-full overflow-hidden">
-      {/* Sidebar */}
-      <div className="flex-shrink-0">
-        <Sidebar
-          isCollapsed={isCollapsed}
-          activeTab={activeTab}
-          onToggle={handleToggle}
-          onTabChange={handleTabChange}
-          onCreateNewChat={handleCreateNewChat}
-        />
-      </div>
+      {/* For Cursor workspace tabs, render directly without header */}
+      {(activeTab === 'creation' || activeTab === 'chat') ? (
+        renderContent()
+      ) : (
+        <>
+          {/* Sidebar */}
+          <div className="flex-shrink-0">
+            <Sidebar
+              isCollapsed={isCollapsed}
+              activeTab={activeTab}
+              onToggle={handleToggle}
+              onTabChange={handleTabChange}
+              onCreateNewChat={handleCreateNewChat}
+            />
+          </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {/* Header */}
-        <ContentHeader activeTab={activeTab} />
+          {/* Main Content */}
+          <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+            {/* Header */}
+            <ContentHeader activeTab={activeTab} />
 
-        {/* Content Area */}
-        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-background via-background to-muted/20">
-          {renderContent()}
-        </main>
-      </div>
+            {/* Content Area */}
+            <main className="flex-1 overflow-y-auto bg-gradient-to-br from-background via-background to-muted/20">
+              {renderContent()}
+            </main>
+          </div>
+        </>
+      )}
     </div>
   );
 };

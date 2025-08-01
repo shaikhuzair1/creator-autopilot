@@ -31,7 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, activeTab, onToggle, onT
             <div>
               <div className="flex items-center space-x-2">
                 <h1 className="text-sm font-medium text-sidebar-foreground">
-                  Creator Autopilot
+                  Cursor Studio
                 </h1>
                 <ChevronDown className="h-4 w-4 text-sidebar-text-muted" />
               </div>

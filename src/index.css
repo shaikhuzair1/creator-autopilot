@@ -2,116 +2,118 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Copy.ai Exact Match - Clean Black & White Theme */
+/* Cursor-like Dark Theme */
 
 @layer base {
   :root {
-    /* Base colors - Copy.ai clean white */
+    /* Cursor Light Theme */
     --background: 0 0% 100%;
-    --foreground: 0 0% 15%;
+    --foreground: 0 0% 12%;
 
     /* Card system */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 15%;
+    --card-foreground: 0 0% 12%;
 
     /* Popover system */
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 15%;
+    --popover-foreground: 0 0% 12%;
 
-    /* Primary - Minimal black */
-    --primary: 0 0% 15%;
+    /* Primary - Cursor blue */
+    --primary: 222 100% 59%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Light grays */
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 15%;
+    /* Secondary */
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    /* Muted - Copy.ai grays */
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    /* Muted */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* Accent - Light hover states */
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 15%;
+    /* Accent */
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
     /* UI elements */
-    --border: 0 0% 90%;
-    --input: 0 0% 98%;
-    --ring: 0 0% 15%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222 100% 59%;
 
-    --radius: 0.5rem;
+    --radius: 0.375rem;
 
     /* Status colors */
-    --success: 120 50% 50%;
+    --success: 120 60% 45%;
     --success-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 50%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Accent variants */
-    --accent-secondary: 0 0% 94%;
-    --primary-glow: 0 0% 25%;
+    /* Editor colors */
+    --editor-background: 0 0% 100%;
+    --editor-selection: 222 100% 95%;
+    --editor-line-highlight: 0 0% 98%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-secondary)));
-
-    /* Shadows - Minimal */
+    /* Shadows */
     --shadow-soft: 0 1px 3px 0 rgb(0 0 0 / 0.1);
     --shadow-elevated: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     --shadow-glow: 0 0 20px hsl(var(--primary) / 0.2);
 
-    /* Sidebar - White sidebar like Copy.ai */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 15%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-text-muted: 0 0% 45%;
-
     /* Chat system */
-    --chat-background: 0 0% 100%;
-    --chat-input: 0 0% 98%;
-    --chat-border: 0 0% 90%;
+    --chat-background: 0 0% 98%;
+    --chat-input: 0 0% 100%;
+    --chat-border: 214.3 31.8% 91.4%;
 
     /* Animation timing */
     --transition-smooth: all 0.2s ease-in-out;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Cursor Dark Theme */
+    --background: 240 10% 8%;
+    --foreground: 0 0% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 10% 10%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 10% 10%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 222 100% 65%;
+    --primary-foreground: 240 10% 8%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 5% 15%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 5% 15%;
+    --muted-foreground: 240 5% 64%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 240 5% 15%;
+    --accent-foreground: 0 0% 95%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 240 5% 18%;
+    --input: 240 5% 15%;
+    --ring: 222 100% 65%;
+
+    /* Editor colors */
+    --editor-background: 240 10% 8%;
+    --editor-selection: 222 100% 25%;
+    --editor-line-highlight: 240 5% 12%;
+
+    /* Chat system */
+    --chat-background: 240 5% 12%;
+    --chat-input: 240 5% 15%;
+    --chat-border: 240 5% 18%;
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary: 222 100% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 222 100% 65%;
   }
 }
 
