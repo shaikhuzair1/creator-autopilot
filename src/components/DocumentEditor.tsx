@@ -1,15 +1,21 @@
-import React, { useState, useRef, useEffect } from 'react';
-import Editor from '@monaco-editor/react';
+import React, { useState, useRef, useCallback } from 'react';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
+import Youtube from '@tiptap/extension-youtube';
+import { Table } from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableHeader from '@tiptap/extension-table-header';
+import TableCell from '@tiptap/extension-table-cell';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
-  Save, FileText, Settings, X, Send, Upload, Image, Video, Bold, Italic, 
-  Heading1, Heading2, List, AlignLeft, AlignCenter, AlignRight, Table, 
-  BarChart3, Plus, Minus, ChevronLeft, Youtube
+  Save, FileText, Settings, X, Send, Upload, Image as ImageIcon, Video, Bold, Italic, 
+  Heading1, Heading2, List, Table as TableIcon, 
+  BarChart3, Plus, Youtube as YoutubeIcon, Undo, Redo, Quote, Code
 } from 'lucide-react';
 import { callLLM } from '@/lib/llmServices';
 import { useToast } from '@/hooks/use-toast';
@@ -18,7 +24,6 @@ interface InlineChat {
   isOpen: boolean;
   position: { x: number; y: number };
   selectedText: string;
-  range: any;
 }
 
 interface DocumentEditorProps {
@@ -27,113 +32,130 @@ interface DocumentEditorProps {
 }
 
 const DocumentEditor: React.FC<DocumentEditorProps> = ({ onSave, onAddToScript }) => {
-  const [content, setContent] = useState(`# Content Creation Script
-
-## Introduction
-Welcome to your content creation workspace. This is where you can write, edit, and refine your scripts with AI assistance.
-
-## Features
-- Monaco Editor with syntax highlighting
-- Inline AI assistance
-- Auto-save functionality
-- Text selection chat
-
-## Getting Started
-Select any text in this editor and start chatting with AI to improve your content.
-
-## Example Script Structure
-
-### Hook
-Start with an attention-grabbing hook...
-
-### Main Content
-Develop your main points...
-
-### Call to Action
-End with a strong call to action...
-`);
   const [inlineChat, setInlineChat] = useState<InlineChat>({
     isOpen: false,
     position: { x: 0, y: 0 },
-    selectedText: '',
-    range: null
+    selectedText: ''
   });
   const [chatMessage, setChatMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showElementsSidebar, setShowElementsSidebar] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{id: string, name: string, type: string, url: string}>>([]);
-  const editorRef = useRef<any>(null);
+  const [autoComplete, setAutoComplete] = useState('');
   const chatPopupRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const handleEditorDidMount = (editor: any, monaco: any) => {
-    editorRef.current = editor;
-    
-    // Configure editor
-    editor.updateOptions({
-      fontSize: 14,
-      lineHeight: 24,
-      padding: { top: 20, bottom: 20 },
-      scrollBeyondLastLine: false,
-      renderLineHighlight: 'line',
-      selectionHighlight: false,
-      occurrencesHighlight: false,
-      roundedSelection: false,
-      minimap: { enabled: false }
-    });
-
-    // Handle text selection
-    editor.onDidChangeCursorSelection((e: any) => {
-      const selection = editor.getSelection();
-      if (!selection.isEmpty()) {
-        const selectedText = editor.getModel().getValueInRange(selection);
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Image.configure({
+        HTMLAttributes: {
+          class: 'rounded-lg max-w-full h-auto',
+        },
+      }),
+      Youtube.configure({
+        width: 640,
+        height: 480,
+        HTMLAttributes: {
+          class: 'rounded-lg',
+        },
+      }),
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
+    ],
+    content: `
+      <h1>Content Creation Script</h1>
+      
+      <h2>Introduction</h2>
+      <p>Welcome to your content creation workspace. This is where you can write, edit, and refine your scripts with AI assistance.</p>
+      
+      <h2>Features</h2>
+      <ul>
+        <li>TipTap rich text editor</li>
+        <li>Inline AI assistance</li>
+        <li>Auto-completion functionality</li>
+        <li>Text selection chat</li>
+        <li>YouTube video embedding</li>
+        <li>Image and media support</li>
+      </ul>
+      
+      <h2>Getting Started</h2>
+      <p>Select any text in this editor and start chatting with AI to improve your content.</p>
+      
+      <h2>Example Script Structure</h2>
+      
+      <h3>Hook</h3>
+      <p>Start with an attention-grabbing hook...</p>
+      
+      <h3>Main Content</h3>
+      <p>Develop your main points...</p>
+      
+      <h3>Call to Action</h3>
+      <p>End with a strong call to action...</p>
+    `,
+    onSelectionUpdate: ({ editor }) => {
+      const { from, to } = editor.state.selection;
+      if (from !== to) {
+        const selectedText = editor.state.doc.textBetween(from, to);
         if (selectedText.trim().length > 0) {
-          // Get position of selection end
-          const position = editor.getScrolledVisiblePosition(selection.getEndPosition());
-          if (position) {
+          const domSelection = window.getSelection();
+          if (domSelection && domSelection.rangeCount > 0) {
+            const range = domSelection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
             setInlineChat({
               isOpen: true,
-              position: { x: position.left, y: position.top + 20 },
-              selectedText: selectedText.trim(),
-              range: selection
+              position: { x: rect.left, y: rect.bottom + 10 },
+              selectedText: selectedText.trim()
             });
           }
         }
       } else {
         setInlineChat(prev => ({ ...prev, isOpen: false }));
       }
-    });
+    },
+    onUpdate: ({ editor }) => {
+      // Trigger auto-completion
+      handleAutoComplete(editor);
+    },
+  });
 
-    // Handle click outside editor but not on chat popup
-    editor.onDidBlurEditorText(() => {
-      setTimeout(() => {
-        if (chatPopupRef.current && !chatPopupRef.current.contains(document.activeElement)) {
-          setInlineChat(prev => ({ ...prev, isOpen: false }));
-        }
-      }, 100);
-    });
+  const handleAutoComplete = async (editorInstance: any) => {
+    const { from, to } = editorInstance.state.selection;
+    const textBefore = editorInstance.state.doc.textBetween(Math.max(0, from - 50), from);
+    
+    if (textBefore.length > 10 && textBefore.endsWith(' ')) {
+      try {
+        const apiKey = 'AIzaSyBHwP9KH6Lg4h7YqGP3H_JoKvQMqRtdWz8';
+        const prompt = `Based on this text: "${textBefore}", suggest a short continuation (max 10 words):`;
+        
+        const response = await callLLM(prompt, 'gemini', 'gemini-1.5-flash', apiKey);
+        setAutoComplete(response.content.substring(0, 50));
+        
+        // Clear auto-complete after 3 seconds
+        setTimeout(() => setAutoComplete(''), 3000);
+      } catch (error) {
+        console.error('Auto-complete error:', error);
+      }
+    }
   };
 
   const handleInlineChatSend = async () => {
-    if (!chatMessage.trim() || isLoading) return;
+    if (!chatMessage.trim() || isLoading || !editor) return;
 
     setIsLoading(true);
     try {
-      const apiKey = localStorage.getItem('gemini_api_key') || 'AIzaSyBHwP9KH6Lg4h7YqGP3H_JoKvQMqRtdWz8';
-
+      const apiKey = 'AIzaSyBHwP9KH6Lg4h7YqGP3H_JoKvQMqRtdWz8';
       const context = `Selected text: "${inlineChat.selectedText}"`;
       const prompt = `${chatMessage}\n\nPlease provide a response that I can use to improve or replace the selected text.`;
       
       const response = await callLLM(prompt, 'gemini', 'gemini-1.5-flash', apiKey, context);
       
       // Replace selected text with AI response
-      if (editorRef.current && inlineChat.range) {
-        const edit = {
-          range: inlineChat.range,
-          text: response.content
-        };
-        editorRef.current.executeEdits('ai-edit', [edit]);
-      }
+      const { from, to } = editor.state.selection;
+      editor.chain().focus().deleteRange({ from, to }).insertContent(response.content).run();
 
       toast({
         title: "Content Updated",
@@ -156,120 +178,43 @@ End with a strong call to action...
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files) return;
+    if (!files || !editor) return;
 
     Array.from(files).forEach(file => {
       const url = URL.createObjectURL(file);
-      const fileData = {
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-        name: file.name,
-        type: file.type,
-        url
-      };
       
-      setUploadedFiles(prev => [...prev, fileData]);
-      
-      // Insert file reference in editor
-      if (editorRef.current) {
-        const editor = editorRef.current;
-        const position = editor.getPosition();
-        let insertText = '';
-        
-        if (file.type.startsWith('image/')) {
-          insertText = `![${file.name}](${url})\n`;
-        } else if (file.type.startsWith('video/')) {
-          insertText = `<video controls src="${url}" alt="${file.name}"></video>\n`;
-        } else {
-          insertText = `[${file.name}](${url})\n`;
-        }
-        
-        editor.executeEdits('file-upload', [{
-          range: {
-            startLineNumber: position.lineNumber,
-            startColumn: position.column,
-            endLineNumber: position.lineNumber,
-            endColumn: position.column
-          },
-          text: insertText
-        }]);
+      if (file.type.startsWith('image/')) {
+        editor.chain().focus().setImage({ src: url, alt: file.name }).run();
+      } else if (file.type.startsWith('video/')) {
+        editor.chain().focus().insertContent(`<video controls src="${url}" class="rounded-lg max-w-full h-auto"></video>`).run();
       }
     });
   };
 
   const handleYouTubeLink = (link: string) => {
-    if (editorRef.current) {
-      const editor = editorRef.current;
-      const position = editor.getPosition();
-      const videoId = link.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
-      const embedCode = videoId 
-        ? `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>\n`
-        : `[YouTube Video](${link})\n`;
-      
-      editor.executeEdits('youtube-embed', [{
-        range: {
-          startLineNumber: position.lineNumber,
-          startColumn: position.column,
-          endLineNumber: position.lineNumber,
-          endColumn: position.column
-        },
-        text: embedCode
-      }]);
-    }
+    if (!editor) return;
+    editor.chain().focus().setYoutubeVideo({ src: link }).run();
   };
 
-  const insertAtCursor = (text: string) => {
-    if (editorRef.current) {
-      const editor = editorRef.current;
-      const position = editor.getPosition();
-      editor.executeEdits('insert-element', [{
-        range: {
-          startLineNumber: position.lineNumber,
-          startColumn: position.column,
-          endLineNumber: position.lineNumber,
-          endColumn: position.column
-        },
-        text: text
-      }]);
-    }
+  const insertAtCursor = (content: string) => {
+    if (!editor) return;
+    editor.chain().focus().insertContent(content).run();
   };
 
-  const formatText = (format: string) => {
-    if (!editorRef.current) return;
-    
-    const editor = editorRef.current;
-    const selection = editor.getSelection();
-    const selectedText = editor.getModel().getValueInRange(selection);
-    
-    let formattedText = selectedText;
-    switch (format) {
-      case 'bold':
-        formattedText = `**${selectedText}**`;
-        break;
-      case 'italic':
-        formattedText = `*${selectedText}*`;
-        break;
-      case 'h1':
-        formattedText = `# ${selectedText}`;
-        break;
-      case 'h2':
-        formattedText = `## ${selectedText}`;
-        break;
-      default:
-        break;
-    }
-    
-    editor.executeEdits('format-text', [{
-      range: selection,
-      text: formattedText
-    }]);
+  const insertTable = () => {
+    if (!editor) return;
+    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
   };
 
   const handleSave = () => {
-    onSave?.(content);
-    toast({
-      title: "Document Saved",
-      description: "Your script has been saved successfully.",
-    });
+    if (editor) {
+      const content = editor.getHTML();
+      onSave?.(content);
+      toast({
+        title: "Document Saved",
+        description: "Your script has been saved successfully.",
+      });
+    }
   };
 
   const quickActions = [
@@ -280,12 +225,18 @@ End with a strong call to action...
   ];
 
   const elementTemplates = [
-    { name: "Table", icon: Table, template: "\n| Header 1 | Header 2 | Header 3 |\n|----------|----------|----------|\n| Cell 1   | Cell 2   | Cell 3   |\n| Cell 4   | Cell 5   | Cell 6   |\n" },
-    { name: "Chart", icon: BarChart3, template: "\n```chart\ntype: bar\ndata:\n  labels: ['Jan', 'Feb', 'Mar']\n  values: [10, 20, 30]\n```\n" },
-    { name: "YouTube Embed", icon: Youtube, template: "", action: "youtube" },
-    { name: "Image Upload", icon: Image, template: "", action: "image" },
-    { name: "Video Upload", icon: Video, template: "", action: "video" }
+    { name: "Table", icon: TableIcon, action: "table" },
+    { name: "Chart", icon: BarChart3, template: "<div class='chart-placeholder p-4 border rounded'>Chart placeholder - connect your data</div>" },
+    { name: "YouTube Embed", icon: YoutubeIcon, action: "youtube" },
+    { name: "Image Upload", icon: ImageIcon, action: "image" },
+    { name: "Video Upload", icon: Video, action: "video" },
+    { name: "Quote", icon: Quote, template: "<blockquote><p>Your quote here...</p></blockquote>" },
+    { name: "Code Block", icon: Code, template: "<pre><code>Your code here...</code></pre>" }
   ];
+
+  if (!editor) {
+    return <div>Loading editor...</div>;
+  }
 
   return (
     <div className="h-full flex bg-background">
@@ -317,28 +268,70 @@ End with a strong call to action...
 
         {/* Formatting Toolbar */}
         <div className="flex items-center gap-1 p-2 border-b border-border bg-card/50">
-          <Button variant="ghost" size="sm" onClick={() => formatText('bold')}>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+          >
+            <Undo className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+          >
+            <Redo className="h-4 w-4" />
+          </Button>
+          <Separator orientation="vertical" className="h-6" />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={editor.isActive('bold') ? 'bg-muted' : ''}
+          >
             <Bold className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => formatText('italic')}>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className={editor.isActive('italic') ? 'bg-muted' : ''}
+          >
             <Italic className="h-4 w-4" />
           </Button>
           <Separator orientation="vertical" className="h-6" />
-          <Button variant="ghost" size="sm" onClick={() => formatText('h1')}>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            className={editor.isActive('heading', { level: 1 }) ? 'bg-muted' : ''}
+          >
             <Heading1 className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => formatText('h2')}>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            className={editor.isActive('heading', { level: 2 }) ? 'bg-muted' : ''}
+          >
             <Heading2 className="h-4 w-4" />
           </Button>
           <Separator orientation="vertical" className="h-6" />
-          <Button variant="ghost" size="sm" onClick={() => insertAtCursor('- ')}>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            className={editor.isActive('bulletList') ? 'bg-muted' : ''}
+          >
             <List className="h-4 w-4" />
           </Button>
           <Separator orientation="vertical" className="h-6" />
           <input
             type="file"
             multiple
-            accept="image/*,video/*,.pdf,.doc,.docx"
+            accept="image/*,video/*"
             onChange={handleFileUpload}
             className="hidden"
             id="file-upload"
@@ -348,32 +341,25 @@ End with a strong call to action...
           </Button>
         </div>
 
+        {/* Auto-completion suggestion */}
+        {autoComplete && (
+          <div className="px-4 py-2 bg-muted/30 text-sm text-muted-foreground">
+            Suggestion: {autoComplete}
+          </div>
+        )}
+
         {/* Editor */}
         <div className="flex-1 relative">
-          <Editor
-            height="100%"
-            defaultLanguage="markdown"
-            value={content}
-            onChange={(value) => setContent(value || '')}
-            onMount={handleEditorDidMount}
-            theme="vs-dark"
-            options={{
-              wordWrap: 'on',
-              lineNumbers: 'on',
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-              fontSize: 14,
-              fontFamily: 'SF Mono, Monaco, Inconsolata, Roboto Mono, monospace',
-              lineHeight: 24,
-              padding: { top: 20, bottom: 20 },
-            }}
+          <EditorContent 
+            editor={editor} 
+            className="h-full prose prose-sm max-w-none p-6 focus:outline-none"
           />
 
           {/* Inline Chat Popup */}
           {inlineChat.isOpen && (
             <Card 
               ref={chatPopupRef}
-              className="absolute z-50 w-80 shadow-elevated border border-border bg-chat-background"
+              className="absolute z-50 w-80 shadow-elevated border border-border bg-background"
               style={{
                 left: Math.min(inlineChat.position.x, window.innerWidth - 320),
                 top: inlineChat.position.y
@@ -478,7 +464,9 @@ End with a strong call to action...
                       if (link) handleYouTubeLink(link);
                     } else if (element.action === 'image' || element.action === 'video') {
                       document.getElementById('file-upload')?.click();
-                    } else {
+                    } else if (element.action === 'table') {
+                      insertTable();
+                    } else if (element.template) {
                       insertAtCursor(element.template);
                     }
                     setShowElementsSidebar(false);

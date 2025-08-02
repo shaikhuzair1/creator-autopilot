@@ -3,15 +3,12 @@
 import { NavigationItem, ContentIdea, Project, Template, VideoClip, AnalyticsData, ScheduledPost } from '@/types';
 
 export const navigationItems: NavigationItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: '🏠', path: '/dashboard', description: 'Overview and stats' },
-  { id: 'creation', label: 'Script Editor', icon: '📝', path: '/creation', description: 'Write & edit scripts with AI' },
+  { id: 'script-editor', label: 'Script Editor', icon: '📝', path: '/script-editor', description: 'Write & edit scripts with AI' },
   { id: 'chat', label: 'AI Assistant', icon: '🤖', path: '/chat', description: 'AI-powered assistant' },
   { id: 'projects', label: 'Projects', icon: '📂', path: '/projects', description: 'Manage campaigns' },
   { id: 'case-studies', label: 'Case Studies', icon: '📋', path: '/case-studies', description: 'Success stories & examples' },
   { id: 'ideation', label: 'Content Ideation', icon: '💡', path: '/ideation', description: 'Generate content ideas' },
   { id: 'script-templates', label: 'Script Templates', icon: '📜', path: '/script-templates', description: 'Professional script templates' },
-  { id: 'scheduling', label: 'Scheduling', icon: '📅', path: '/scheduling', description: 'Content calendar' },
-  { id: 'analytics', label: 'Analytics', icon: '📊', path: '/analytics', description: 'Performance insights' },
   { id: 'templates', label: 'Templates', icon: '🖼️', path: '/templates', description: 'Ready-to-use templates' },
 ];
 

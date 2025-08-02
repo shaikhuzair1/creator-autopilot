@@ -19,8 +19,8 @@ import {
 } from 'lucide-react';
 import { caseStudies } from '@/data/caseStudies';
 import { scriptTemplates, nicheTipics } from '@/data/mockData';
-import { callLLM, hasApiKey, LLM_PROVIDERS } from '@/lib/llmServices';
-import { LLMSelector } from './LLMSelector';
+import { callLLM } from '@/lib/llmServices';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
 interface ChatMessage {
@@ -104,15 +104,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
   const handleSendMessage = async () => {
     if (!message.trim() || isLoading) return;
-    
-    if (!hasApiKey(selectedProvider)) {
-      toast({
-        title: "API Key Required",
-        description: `Please configure your ${LLM_PROVIDERS.find(p => p.id === selectedProvider)?.name} API key first.`,
-        variant: "destructive"
-      });
-      return;
-    }
     
     const newMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -278,14 +269,25 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
       {/* Input Area */}
       <div className="border-t border-chat-border bg-chat-background p-4">
-        {/* LLM Selector */}
+        {/* Combined Agent/Model Selector */}
         <div className="mb-3">
-          <LLMSelector
-            selectedProvider={selectedProvider}
-            selectedModel={selectedModel}
-            onProviderChange={setSelectedProvider}
-            onModelChange={setSelectedModel}
-          />
+          <Select value={`${selectedProvider}-${selectedModel}`} onValueChange={(value) => {
+            const [provider, model] = value.split('-');
+            setSelectedProvider(provider);
+            setSelectedModel(model);
+          }}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select Agent & Model" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="gemini-gemini-1.5-flash">Gemini Flash</SelectItem>
+              <SelectItem value="gemini-gemini-1.5-pro">Gemini Pro</SelectItem>
+              <SelectItem value="openai-gpt-4.1-2025-04-14">GPT-4.1</SelectItem>
+              <SelectItem value="openai-gpt-4o">GPT-4o</SelectItem>
+              <SelectItem value="claude-claude-sonnet-4-20250514">Claude Sonnet</SelectItem>
+              <SelectItem value="claude-claude-opus-4-20250514">Claude Opus</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Suggestions */}
