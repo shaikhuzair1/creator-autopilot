@@ -81,7 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, activeTab, onToggle, onT
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1">
-            {navigationItems.filter(item => ['script-editor', 'chat', 'projects'].includes(item.id)).map((item: NavigationItem) => (
+            {navigationItems.filter(item => ['dashboard', 'chat', 'projects'].includes(item.id)).map((item: NavigationItem) => (
               <Button
                 key={item.id}
                 variant="ghost"
@@ -145,51 +145,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, activeTab, onToggle, onT
         </Collapsible>
 
         {/* Profile Section */}
-        <Collapsible open={isProfileOpen} onOpenChange={setIsProfileOpen}>
-          <CollapsibleTrigger asChild>
-            <Button
-              variant="ghost"
-              className="w-full justify-between text-left h-9 px-3 text-sidebar-text-muted hover:bg-sidebar-accent hover:text-sidebar-foreground"
-            >
-              {!isCollapsed && <span className="text-sm font-medium">Profile</span>}
-              {!isCollapsed && (
-                <ChevronDown className={cn(
-                  "h-4 w-4 transition-transform",
-                  isProfileOpen ? "rotate-180" : ""
-                )} />
-              )}
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-1">
-            <Button
-              variant="ghost"
-              className={cn(
-                "w-full justify-start text-left h-9 px-3 transition-colors ml-4",
-                activeTab === 'profile' 
-                  ? "bg-sidebar-accent text-sidebar-foreground" 
-                  : "text-sidebar-text-muted hover:bg-sidebar-accent hover:text-sidebar-foreground"
-              )}
-              onClick={() => onTabChange('profile')}
-            >
-              <User className="h-4 w-4 mr-3" />
-              {!isCollapsed && (
-                <span className="text-sm">My Profile</span>
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              className={cn(
-                "w-full justify-start text-left h-9 px-3 transition-colors ml-4",
-                "text-sidebar-text-muted hover:bg-sidebar-accent hover:text-sidebar-foreground"
-              )}
-            >
-              <Settings className="h-4 w-4 mr-3" />
-              {!isCollapsed && (
-                <span className="text-sm">Settings</span>
-              )}
-            </Button>
-          </CollapsibleContent>
-        </Collapsible>
+        
       </nav>
 
       {/* Footer */}

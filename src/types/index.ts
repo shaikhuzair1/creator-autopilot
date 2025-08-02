@@ -1,9 +1,11 @@
 // Types for Content Creation Autopilot
 
+import { ReactNode } from "react";
+
 export interface NavigationItem {
   id: string;
   label: string;
-  icon: string;
+  icon: ReactNode;
   path: string;
   description?: string;
 }

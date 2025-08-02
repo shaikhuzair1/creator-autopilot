@@ -2,13 +2,10 @@ import React, { useState } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, X } from 'lucide-react';
-import DocumentEditor from './DocumentEditor';
 import ChatPanel from './ChatPanel';
 import Sidebar from './Sidebar';
-import RichTextEditor from 'reactjs-tiptap-editor';
-import {BaseKit , Heading,Table,Emoji,Excalidraw,ExportPdf,ExportWord,Image,ImageGif,Iframe,
-  ImportWord,TaskList,TableOfContents,TextDirection,TextAlign,Twitter} from 'reactjs-tiptap-editor/extension-bundle';
   import './editor.css'
+import MergedDocumentEditor from './DocumentEditor';
 interface CursorWorkspaceProps {
   isCollapsed: boolean;
   activeTab: string;
@@ -16,13 +13,6 @@ interface CursorWorkspaceProps {
   onTabChange: (tabId: string) => void;
   onCreateNewChat: () => void;
 }
-const extensions = [BaseKit , Heading,Table,Emoji,Excalidraw,ExportPdf,ExportWord,Image,ImageGif,Iframe,
-  TaskList,
-  TextDirection,
-  TextAlign,
-  Twitter,
-  TableOfContents
-]
 const DEFAULT = '';
 const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
   isCollapsed,
@@ -32,10 +22,6 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
   onCreateNewChat
 }) => {
    const [content, setContent] = useState(DEFAULT);
-
-  const onChangeContent = (value: any) => {
-    setContent(value);
-  };
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [projects, setProjects] = useState<Array<{id: string, title: string, content: string}>>([
@@ -99,18 +85,8 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
         <div className="flex-1 flex overflow-hidden">
           <ResizablePanelGroup direction="horizontal">
             {/* Document Editor Panel */}
-            <ResizablePanel defaultSize={isChatOpen ? 70 : 100} minSize={50}>
-              {/* <DocumentEditor 
-                onSave={handleSaveDocument} 
-                onAddToScript={handleAddToScript}
-              /> */}
-                <RichTextEditor
-                  contentClass={'content-container'}
-                  output='html'
-                  content={content}
-                  onChangeContent={onChangeContent}
-                  extensions={extensions}
-                />
+            <ResizablePanel defaultSize={isChatOpen ? 100 : 100} minSize={50}>
+                <MergedDocumentEditor onSave={handleSaveDocument} onAddToScript={handleAddToScript} />
             </ResizablePanel>
 
             {/* Chat Panel */}

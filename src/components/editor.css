@@ -1,5 +1,25 @@
 .content-container{
-    height: 100vh;
+    min-height: 80vh;
     width: 85vw;
-    max-width: 90vw;
+    max-width: 85vw;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    padding: 50px;
+}
+/* Webkit browsers scrollbar styling for better compatibility */
+.content-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.content-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.content-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.content-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }

@@ -1,15 +1,16 @@
 // Mock data for Content Creation Autopilot
 
 import { NavigationItem, ContentIdea, Project, Template, VideoClip, AnalyticsData, ScheduledPost } from '@/types';
+import { BotMessageSquare, FileStack, FolderOpenDot, LayoutDashboard, Lightbulb, SquareDashedKanban } from 'lucide-react';
 
 export const navigationItems: NavigationItem[] = [
-  { id: 'script-editor', label: 'Script Editor', icon: '📝', path: '/script-editor', description: 'Write & edit scripts with AI' },
-  { id: 'chat', label: 'AI Assistant', icon: '🤖', path: '/chat', description: 'AI-powered assistant' },
-  { id: 'projects', label: 'Projects', icon: '📂', path: '/projects', description: 'Manage campaigns' },
-  { id: 'case-studies', label: 'Case Studies', icon: '📋', path: '/case-studies', description: 'Success stories & examples' },
-  { id: 'ideation', label: 'Content Ideation', icon: '💡', path: '/ideation', description: 'Generate content ideas' },
-  { id: 'script-templates', label: 'Script Templates', icon: '📜', path: '/script-templates', description: 'Professional script templates' },
-  { id: 'templates', label: 'Templates', icon: '🖼️', path: '/templates', description: 'Ready-to-use templates' },
+  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard />, path: '/dashboard', description: 'Dashboard' },
+  { id: 'chat', label: 'AI Assistant', icon: <BotMessageSquare />, path: '/chat', description: 'AI-powered assistant' },
+  { id: 'projects', label: 'Projects', icon: <FolderOpenDot />, path: '/projects', description: 'Manage campaigns' },
+  { id: 'case-studies', label: 'Case Studies', icon: <FileStack />, path: '/case-studies', description: 'Success stories & examples' },
+  { id: 'ideation', label: 'Content Ideation', icon: <Lightbulb />, path: '/ideation', description: 'Generate content ideas' },
+  { id: 'script-templates', label: 'Script Templates', icon: <SquareDashedKanban />, path: '/script-templates', description: 'Professional script templates' },
+  { id: 'templates', label: 'Templates', icon: <SquareDashedKanban />, path: '/templates', description: 'Ready-to-use templates' },
 ];
 
 export const contentIdeas: ContentIdea[] = [
