@@ -5,7 +5,10 @@ import { MessageCircle, X } from 'lucide-react';
 import DocumentEditor from './DocumentEditor';
 import ChatPanel from './ChatPanel';
 import Sidebar from './Sidebar';
-
+import RichTextEditor from 'reactjs-tiptap-editor';
+import {BaseKit , Heading,Table,Emoji,Excalidraw,ExportPdf,ExportWord,Image,ImageGif,Iframe,
+  ImportWord,TaskList,TableOfContents,TextDirection,TextAlign,Twitter} from 'reactjs-tiptap-editor/extension-bundle';
+  import './editor.css'
 interface CursorWorkspaceProps {
   isCollapsed: boolean;
   activeTab: string;
@@ -13,7 +16,14 @@ interface CursorWorkspaceProps {
   onTabChange: (tabId: string) => void;
   onCreateNewChat: () => void;
 }
-
+const extensions = [BaseKit , Heading,Table,Emoji,Excalidraw,ExportPdf,ExportWord,Image,ImageGif,Iframe,
+  TaskList,
+  TextDirection,
+  TextAlign,
+  Twitter,
+  TableOfContents
+]
+const DEFAULT = '';
 const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
   isCollapsed,
   activeTab,
@@ -21,6 +31,12 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
   onTabChange,
   onCreateNewChat
 }) => {
+   const [content, setContent] = useState(DEFAULT);
+
+  const onChangeContent = (value: any) => {
+    setContent(value);
+  };
+
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [projects, setProjects] = useState<Array<{id: string, title: string, content: string}>>([
     { id: '1', title: 'Welcome Script', content: '# Welcome Script\n\nStart writing your content here...' }
@@ -84,10 +100,17 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
           <ResizablePanelGroup direction="horizontal">
             {/* Document Editor Panel */}
             <ResizablePanel defaultSize={isChatOpen ? 70 : 100} minSize={50}>
-              <DocumentEditor 
+              {/* <DocumentEditor 
                 onSave={handleSaveDocument} 
                 onAddToScript={handleAddToScript}
-              />
+              /> */}
+                <RichTextEditor
+                  contentClass={'content-container'}
+                  output='html'
+                  content={content}
+                  onChangeContent={onChangeContent}
+                  extensions={extensions}
+                />
             </ResizablePanel>
 
             {/* Chat Panel */}
