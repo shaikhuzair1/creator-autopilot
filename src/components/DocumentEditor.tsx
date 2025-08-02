@@ -117,7 +117,6 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({ onSave, onAddToScript }
       }
     },
     onUpdate: ({ editor }) => {
-      // Trigger auto-completion
       handleAutoComplete(editor);
     },
   });
@@ -134,7 +133,6 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({ onSave, onAddToScript }
         const response = await callLLM(prompt, 'gemini', 'gemini-1.5-flash', apiKey);
         setAutoComplete(response.content.substring(0, 50));
         
-        // Clear auto-complete after 3 seconds
         setTimeout(() => setAutoComplete(''), 3000);
       } catch (error) {
         console.error('Auto-complete error:', error);
@@ -153,7 +151,6 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({ onSave, onAddToScript }
       
       const response = await callLLM(prompt, 'gemini', 'gemini-1.5-flash', apiKey, context);
       
-      // Replace selected text with AI response
       const { from, to } = editor.state.selection;
       editor.chain().focus().deleteRange({ from, to }).insertContent(response.content).run();
 
@@ -217,23 +214,6 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({ onSave, onAddToScript }
     }
   };
 
-  const quickActions = [
-    { label: "Improve this", action: "Improve and enhance this text while maintaining its meaning" },
-    { label: "Make shorter", action: "Make this text more concise and to the point" },
-    { label: "Add humor", action: "Add appropriate humor to this text while keeping it professional" },
-    { label: "Explain better", action: "Rewrite this to be clearer and easier to understand" }
-  ];
-
-  const elementTemplates = [
-    { name: "Table", icon: TableIcon, action: "table" },
-    { name: "Chart", icon: BarChart3, template: "<div class='chart-placeholder p-4 border rounded'>Chart placeholder - connect your data</div>" },
-    { name: "YouTube Embed", icon: YoutubeIcon, action: "youtube" },
-    { name: "Image Upload", icon: ImageIcon, action: "image" },
-    { name: "Video Upload", icon: Video, action: "video" },
-    { name: "Quote", icon: Quote, template: "<blockquote><p>Your quote here...</p></blockquote>" },
-    { name: "Code Block", icon: Code, template: "<pre><code>Your code here...</code></pre>" }
-  ];
-
   if (!editor) {
     return <div>Loading editor...</div>;
   }
@@ -255,9 +235,6 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({ onSave, onAddToScript }
               onClick={() => setShowElementsSidebar(!showElementsSidebar)}
             >
               <Plus className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm">
-              <Settings className="h-4 w-4" />
             </Button>
             <Button onClick={handleSave} size="sm">
               <Save className="h-4 w-4 mr-2" />
@@ -327,18 +304,6 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({ onSave, onAddToScript }
           >
             <List className="h-4 w-4" />
           </Button>
-          <Separator orientation="vertical" className="h-6" />
-          <input
-            type="file"
-            multiple
-            accept="image/*,video/*"
-            onChange={handleFileUpload}
-            className="hidden"
-            id="file-upload"
-          />
-          <Button variant="ghost" size="sm" onClick={() => document.getElementById('file-upload')?.click()}>
-            <Upload className="h-4 w-4" />
-          </Button>
         </div>
 
         {/* Auto-completion suggestion */}
@@ -385,27 +350,6 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({ onSave, onAddToScript }
                   </div>
                 </div>
 
-                {/* Quick Actions */}
-                <div className="mb-3">
-                  <div className="text-xs text-muted-foreground mb-2">Quick actions:</div>
-                  <div className="grid grid-cols-2 gap-1">
-                    {quickActions.map((action, index) => (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs h-7"
-                        onClick={() => {
-                          setChatMessage(action.action);
-                          handleInlineChatSend();
-                        }}
-                      >
-                        {action.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Chat Input */}
                 <div className="flex gap-2">
                   <Textarea
@@ -434,54 +378,6 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({ onSave, onAddToScript }
           )}
         </div>
       </div>
-
-      {/* Elements Sidebar */}
-      {showElementsSidebar && (
-        <div className="w-80 border-l border-border bg-card">
-          <div className="p-4 border-b border-border">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium">Elements</h3>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setShowElementsSidebar(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          
-          <ScrollArea className="h-full">
-            <div className="p-4 space-y-3">
-              {elementTemplates.map((element, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="w-full justify-start h-auto p-3"
-                  onClick={() => {
-                    if (element.action === 'youtube') {
-                      const link = prompt('Enter YouTube URL:');
-                      if (link) handleYouTubeLink(link);
-                    } else if (element.action === 'image' || element.action === 'video') {
-                      document.getElementById('file-upload')?.click();
-                    } else if (element.action === 'table') {
-                      insertTable();
-                    } else if (element.template) {
-                      insertAtCursor(element.template);
-                    }
-                    setShowElementsSidebar(false);
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <element.icon className="h-5 w-5" />
-                    <span>{element.name}</span>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </ScrollArea>
-        </div>
-      )}
     </div>
   );
 };

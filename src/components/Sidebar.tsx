@@ -81,7 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, activeTab, onToggle, onT
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1">
-            {navigationItems.filter(item => ['dashboard', 'chat', 'projects', 'case-studies'].includes(item.id)).map((item: NavigationItem) => (
+            {navigationItems.filter(item => ['script-editor', 'chat', 'projects'].includes(item.id)).map((item: NavigationItem) => (
               <Button
                 key={item.id}
                 variant="ghost"
@@ -121,7 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, activeTab, onToggle, onT
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1">
-            {navigationItems.filter(item => !['dashboard', 'chat', 'projects', 'case-studies'].includes(item.id)).map((item: NavigationItem) => (
+            {navigationItems.filter(item => ['templates', 'case-studies', 'prompt-library', 'video-editing'].includes(item.id)).map((item: NavigationItem) => (
               <Button
                 key={item.id}
                 variant="ghost"

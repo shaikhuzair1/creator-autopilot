@@ -1,375 +1,353 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { 
-  MessageCircle, 
-  Bot, 
-  User, 
-  Settings, 
-  X, 
-  Send, 
-  Paperclip, 
-  Library,
-  TrendingUp,
-  Minimize2,
-  Maximize2
-} from 'lucide-react';
-import { caseStudies } from '@/data/caseStudies';
-import { scriptTemplates, nicheTipics } from '@/data/mockData';
-import { callLLM } from '@/lib/llmServices';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Send, User, Bot, FileText, Lightbulb, 
+  Copy, ThumbsUp, ThumbsDown, RotateCcw,
+  Sparkles, Plus, Settings, X, Files
+} from 'lucide-react';
+import { callLLM } from '@/lib/llmServices';
 import { useToast } from '@/hooks/use-toast';
+import { caseStudies } from '@/data/caseStudies';
+import { scriptTemplates } from '@/data/mockData';
 
 interface ChatMessage {
   id: string;
-  type: 'user' | 'assistant';
+  role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
 }
 
 interface ChatPanelProps {
-  isMinimized?: boolean;
-  onToggleMinimize?: () => void;
   onClose?: () => void;
   onAddToScript?: (content: string) => void;
 }
 
-const ChatPanel: React.FC<ChatPanelProps> = ({ 
-  isMinimized = false, 
-  onToggleMinimize,
-  onClose,
-  onAddToScript
-}) => {
+const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
-      type: 'assistant',
-      content: 'Hi! I\'m your AI assistant. I can help you improve your writing, generate content, and provide suggestions. Select text in the editor or ask me anything!',
+      role: 'assistant',
+      content: 'Hello! I\'m your AI coding assistant. I can help you with content creation, script writing, and provide suggestions based on your templates and case studies.',
       timestamp: new Date()
     }
   ]);
-  const [message, setMessage] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [suggestions, setSuggestions] = useState<Array<{id: string, title: string, type?: string}>>([]);
+  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState('gemini');
-  const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash');
-  const [selectedNiche, setSelectedNiche] = useState('');
-  const [showTopicSuggestions, setShowTopicSuggestions] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [llmProvider, setLlmProvider] = useState('gemini');
+  const [model, setModel] = useState('gemini-1.5-flash');
+  const [selectedCaseStudies, setSelectedCaseStudies] = useState<string[]>([]);
+  const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
+  const [showCaseStudies, setShowCaseStudies] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    inputRef.current?.focus();
+  }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setMessage(value);
-    
-    // Check for @ mentions
-    const atIndex = value.lastIndexOf('@');
-    if (atIndex !== -1 && atIndex === value.length - 1) {
-      const caseStudySuggestions = caseStudies.map(cs => ({ id: cs.id, title: cs.title, type: 'case-study' }));
-      const templateSuggestions = scriptTemplates.map(st => ({ id: st.id, title: st.title, type: 'template' }));
-      setSuggestions([...caseStudySuggestions, ...templateSuggestions]);
-      setShowSuggestions(true);
-    } else if (atIndex !== -1) {
-      const searchTerm = value.slice(atIndex + 1).toLowerCase();
-      const caseStudyFiltered = caseStudies
-        .filter(cs => cs.title.toLowerCase().includes(searchTerm))
-        .map(cs => ({ id: cs.id, title: cs.title, type: 'case-study' }));
-      const templateFiltered = scriptTemplates
-        .filter(st => st.title.toLowerCase().includes(searchTerm))
-        .map(st => ({ id: st.id, title: st.title, type: 'template' }));
-      const filtered = [...caseStudyFiltered, ...templateFiltered];
-      setSuggestions(filtered);
-      setShowSuggestions(filtered.length > 0);
-    } else {
-      setShowSuggestions(false);
-    }
-  };
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
 
-  const handleSuggestionClick = (suggestion: {id: string, title: string, type?: string}) => {
-    const atIndex = message.lastIndexOf('@');
-    const newMessage = message.slice(0, atIndex) + `@${suggestion.title} `;
-    setMessage(newMessage);
-    setShowSuggestions(false);
-    textareaRef.current?.focus();
-  };
-
-  const handleSendMessage = async () => {
-    if (!message.trim() || isLoading) return;
-    
-    const newMessage: ChatMessage = {
+    const userMessage: ChatMessage = {
       id: Date.now().toString(),
-      type: 'user',
-      content: message,
+      role: 'user',
+      content: input,
       timestamp: new Date()
     };
-    
-    setMessages(prev => [...prev, newMessage]);
-    
-    const currentMessage = message;
-    setMessage('');
-    setShowSuggestions(false);
+
+    setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
+    setInput('');
     setIsLoading(true);
-    
+
     try {
-      // Check for references
-      const referencedCaseStudies = caseStudies.filter(cs => 
-        currentMessage.includes(`@${cs.title}`)
-      );
-      const referencedTemplates = scriptTemplates.filter(st => 
-        currentMessage.includes(`@${st.title}`)
-      );
-      
       let context = '';
-      
-      if (referencedCaseStudies.length > 0) {
-        context += referencedCaseStudies.map(cs => 
-          `Case Study: ${cs.title}\nNiche: ${cs.niche}\nKey Takeaways: ${cs.content.keyTakeaways.join(', ')}\nStrategy: ${cs.content.strategy}\nResults: ${cs.content.results}`
-        ).join('\n\n');
+
+      if (selectedCaseStudies.length > 0) {
+        const studies = caseStudies.filter(cs => selectedCaseStudies.includes(cs.id));
+        context += 'Referenced Case Studies:\n' + studies.map(cs => 
+          `${cs.title}: ${cs.content.keyTakeaways.join(', ')}`
+        ).join('\n') + '\n\n';
       }
-      
-      if (referencedTemplates.length > 0) {
-        if (context) context += '\n\n';
-        context += referencedTemplates.map(st => 
-          `Script Template: ${st.title}\nCategory: ${st.category}\nDescription: ${st.description}\nContent: ${st.content}`
-        ).join('\n\n');
+
+      if (selectedTemplates.length > 0) {
+        const templates = scriptTemplates.filter(t => selectedTemplates.includes(t.id));
+        context += 'Referenced Templates:\n' + templates.map(t => 
+          `${t.title}: ${t.description}`
+        ).join('\n') + '\n\n';
       }
-      
-      const apiKey = localStorage.getItem(`${selectedProvider}_api_key`) || 'AIzaSyBHwP9KH6Lg4h7YqGP3H_JoKvQMqRtdWz8';
-      const response = await callLLM(currentMessage, selectedProvider, selectedModel, apiKey, context);
-      
+
+      const apiKey = 'AIzaSyBHwP9KH6Lg4h7YqGP3H_JoKvQMqRtdWz8';
+      const response = await callLLM(currentInput, llmProvider, model, apiKey, context);
+
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        type: 'assistant',
+        role: 'assistant',
         content: response.content,
         timestamp: new Date()
       };
-      
+
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error getting AI response:', error);
       toast({
         title: "Error",
-        description: "Failed to get AI response. Please check your API key and try again.",
+        description: "Failed to get AI response. Please try again.",
         variant: "destructive"
       });
-      
-      const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again or check your API key configuration.',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const generateTopicSuggestions = (niche: string) => {
-    const topics = nicheTipics[niche as keyof typeof nicheTipics] || [];
-    return topics;
-  };
-
-  if (isMinimized) {
-    return (
-      <Button
-        onClick={onToggleMinimize}
-        className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg z-50"
-        size="sm"
-      >
-        <MessageCircle className="h-5 w-5" />
-      </Button>
-    );
-  }
-
   return (
-    <div className="h-full flex flex-col bg-chat-background border-l border-border">
+    <div className="h-full flex flex-col bg-[#1e1e1e] text-[#cccccc] border-l border-[#2d2d30]">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-chat-border">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-[#2d2d30] bg-[#252526]">
         <div className="flex items-center gap-2">
-          <Bot className="h-5 w-5 text-primary" />
-          <span className="font-medium">AI Assistant</span>
+          <span className="text-xs font-medium text-[#cccccc] uppercase tracking-wider">CHAT</span>
         </div>
-        <div className="flex items-center gap-1">
-          {onToggleMinimize && (
-            <Button variant="ghost" size="sm" onClick={onToggleMinimize}>
-              <Minimize2 className="h-4 w-4" />
-            </Button>
-          )}
-          {onClose && (
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+        <Button variant="ghost" size="sm" onClick={onClose} className="h-6 w-6 p-0 hover:bg-[#2a2d2e]">
+          <X className="h-3 w-3 text-[#cccccc]" />
+        </Button>
       </div>
 
-      {/* Messages */}
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
-          {messages.map((msg) => (
-            <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] rounded-lg p-3 ${
-                msg.type === 'user' 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-muted border border-border'
-              }`}>
-                  <div className="flex items-start gap-2">
-                    {msg.type === 'assistant' && <Bot className="h-4 w-4 mt-0.5 text-primary" />}
-                    {msg.type === 'user' && <User className="h-4 w-4 mt-0.5" />}
-                    <div className="flex-1">
-                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                      <div className="flex items-center justify-between mt-1">
-                        <p className="text-xs opacity-60">
-                          {msg.timestamp.toLocaleTimeString()}
-                        </p>
-                        {msg.type === 'assistant' && onAddToScript && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 text-xs"
-                            onClick={() => onAddToScript(msg.content)}
-                          >
-                            Add to Script
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-              </div>
-            </div>
-          ))}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-muted border border-border rounded-lg p-3 max-w-[80%]">
-                <div className="flex items-center gap-2">
-                  <Bot className="h-4 w-4 text-primary" />
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-      </ScrollArea>
-
-      {/* Input Area */}
-      <div className="border-t border-chat-border bg-chat-background p-4">
-        {/* Combined Agent/Model Selector */}
-        <div className="mb-3">
-          <Select value={`${selectedProvider}-${selectedModel}`} onValueChange={(value) => {
-            const [provider, model] = value.split('-');
-            setSelectedProvider(provider);
-            setSelectedModel(model);
-          }}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Agent & Model" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="gemini-gemini-1.5-flash">Gemini Flash</SelectItem>
-              <SelectItem value="gemini-gemini-1.5-pro">Gemini Pro</SelectItem>
-              <SelectItem value="openai-gpt-4.1-2025-04-14">GPT-4.1</SelectItem>
-              <SelectItem value="openai-gpt-4o">GPT-4o</SelectItem>
-              <SelectItem value="claude-claude-sonnet-4-20250514">Claude Sonnet</SelectItem>
-              <SelectItem value="claude-claude-opus-4-20250514">Claude Opus</SelectItem>
-            </SelectContent>
-          </Select>
+      {/* Context Selection */}
+      <div className="px-3 py-2 border-b border-[#2d2d30] bg-[#1e1e1e]">
+        <div className="flex gap-1 flex-wrap">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowCaseStudies(!showCaseStudies)}
+            className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e] border border-[#454545]"
+          >
+            <FileText className="h-3 w-3 mr-1" />
+            Case Studies
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowTemplates(!showTemplates)}
+            className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e] border border-[#454545]"
+          >
+            <Lightbulb className="h-3 w-3 mr-1" />
+            Templates
+          </Button>
         </div>
 
-        {/* Suggestions */}
-        {showSuggestions && suggestions.length > 0 && (
-          <Card className="mb-3 max-h-32 overflow-y-auto">
-            {suggestions.map((suggestion) => (
-              <button
-                key={suggestion.id}
-                className="w-full text-left px-3 py-2 hover:bg-muted transition-colors text-sm border-b border-border last:border-b-0"
-                onClick={() => handleSuggestionClick(suggestion)}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded capitalize">
-                    {suggestion.type === 'case-study' ? 'Case Study' : 'Template'}
-                  </span>
-                  <span className="font-medium">@{suggestion.title}</span>
+        {/* Case Studies Selection */}
+        {showCaseStudies && (
+          <div className="mt-2">
+            <div className="max-h-24 overflow-y-auto space-y-1">
+              {caseStudies.map((study) => (
+                <div key={study.id} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id={`case-${study.id}`}
+                    checked={selectedCaseStudies.includes(study.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedCaseStudies([...selectedCaseStudies, study.id]);
+                      } else {
+                        setSelectedCaseStudies(selectedCaseStudies.filter(id => id !== study.id));
+                      }
+                    }}
+                    className="rounded"
+                  />
+                  <label htmlFor={`case-${study.id}`} className="text-xs truncate text-[#cccccc]">{study.title}</label>
                 </div>
-              </button>
-            ))}
-          </Card>
-        )}
-
-        {/* Topic Suggestions */}
-        {messages.length === 1 && (
-          <div className="mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Quick Topics</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {Object.keys(nicheTipics).slice(0, 4).map((niche) => (
-                <Button
-                  key={niche}
-                  variant="outline"
-                  size="sm"
-                  className="text-xs h-8 capitalize"
-                  onClick={() => setMessage(`Generate content ideas for ${niche}`)}
-                >
-                  {niche}
-                </Button>
               ))}
             </div>
           </div>
         )}
-        
-        <div className="relative">
-          <div className="flex items-end gap-2">
-            <div className="flex-1 relative">
-              <Textarea
-                ref={textareaRef}
-                value={message}
-                onChange={handleInputChange}
-                placeholder="Ask me anything... (type @ to reference templates)"
-                className="min-h-[80px] resize-none pr-12"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                  if (e.key === 'Escape') {
-                    setShowSuggestions(false);
-                  }
-                }}
-              />
-              <div className="absolute bottom-2 right-2 flex gap-1">
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                  <Paperclip className="h-3 w-3" />
-                </Button>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                  <Library className="h-3 w-3" />
-                </Button>
+
+        {/* Templates Selection */}
+        {showTemplates && (
+          <div className="mt-2">
+            <div className="max-h-24 overflow-y-auto space-y-1">
+              {scriptTemplates.map((template) => (
+                <div key={template.id} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id={`template-${template.id}`}
+                    checked={selectedTemplates.includes(template.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedTemplates([...selectedTemplates, template.id]);
+                      } else {
+                        setSelectedTemplates(selectedTemplates.filter(id => id !== template.id));
+                      }
+                    }}
+                    className="rounded"
+                  />
+                  <label htmlFor={`template-${template.id}`} className="text-xs truncate text-[#cccccc]">{template.title}</label>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Messages */}
+      <ScrollArea className="flex-1 px-3 py-2">
+        <div className="space-y-3">
+          {messages.map((message, index) => (
+            <div key={index} className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-[#007acc] flex items-center justify-center">
+                  {message.role === 'user' ? <User className="h-2 w-2 text-white" /> : <Bot className="h-2 w-2 text-white" />}
+                </div>
+                <span className="text-xs text-[#cccccc] font-medium">
+                  {message.role === 'user' ? 'You' : 'Copilot'}
+                </span>
+                <span className="text-xs text-[#6a9955]">
+                  {new Date(message.timestamp).toLocaleTimeString()}
+                </span>
+              </div>
+              <div className="ml-6 text-sm text-[#cccccc] leading-relaxed">
+                {message.content}
+              </div>
+              {message.role === 'assistant' && (
+                <div className="ml-6 flex items-center gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => onAddToScript?.(message.content)}
+                    className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e]"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add to Script
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e]">
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e]">
+                    <ThumbsUp className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e]">
+                    <ThumbsDown className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          ))}
+          {isLoading && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-[#007acc] flex items-center justify-center">
+                  <Bot className="h-2 w-2 text-white" />
+                </div>
+                <span className="text-xs text-[#cccccc] font-medium">Copilot</span>
+              </div>
+              <div className="ml-6 text-sm text-[#cccccc]">
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b border-[#007acc]"></div>
+                  Thinking...
+                </div>
               </div>
             </div>
-            <Button 
-              onClick={handleSendMessage}
-              disabled={!message.trim() || isLoading}
-              size="sm"
-              className="h-[80px]"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+          )}
+        </div>
+      </ScrollArea>
+
+      {/* Files context */}
+      <div className="px-3 py-2 border-t border-[#2d2d30] bg-[#1e1e1e]">
+        <div className="text-xs text-[#6a9955] mb-1">11 files changed</div>
+        <div className="space-y-1 max-h-20 overflow-y-auto">
+          <div className="flex items-center gap-2 text-xs text-[#cccccc]">
+            <Files className="h-3 w-3" />
+            <span>script_template.tsx</span>
+            <span className="text-[#6a9955]">src/components/...</span>
           </div>
+          <div className="flex items-center gap-2 text-xs text-[#cccccc]">
+            <Files className="h-3 w-3" />
+            <span>content_creation.tsx</span>
+            <span className="text-[#6a9955]">src/components/...</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Input */}
+      <div className="p-3 border-t border-[#2d2d30] bg-[#1e1e1e] space-y-2">
+        {/* Selected Context Display */}
+        {(selectedCaseStudies.length > 0 || selectedTemplates.length > 0) && (
+          <div className="flex gap-1 flex-wrap">
+            {selectedCaseStudies.map((id) => {
+              const study = caseStudies.find(s => s.id === id);
+              return (
+                <Badge key={id} variant="secondary" className="text-xs bg-[#2d2d30] text-[#cccccc] border-[#454545]">
+                  {study?.title}
+                  <button
+                    onClick={() => setSelectedCaseStudies(selectedCaseStudies.filter(sid => sid !== id))}
+                    className="ml-1 text-[#888] hover:text-[#cccccc]"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              );
+            })}
+            {selectedTemplates.map((id) => {
+              const template = scriptTemplates.find(t => t.id === id);
+              return (
+                <Badge key={id} variant="secondary" className="text-xs bg-[#2d2d30] text-[#cccccc] border-[#454545]">
+                  {template?.title}
+                  <button
+                    onClick={() => setSelectedTemplates(selectedTemplates.filter(tid => tid !== id))}
+                    className="ml-1 text-[#888] hover:text-[#cccccc]"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              );
+            })}
+          </div>
+        )}
+        
+        <div className="flex gap-2">
+          <Input
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask Copilot a question or type / for topics"
+            className="flex-1 bg-[#3c3c3c] border-[#454545] text-[#cccccc] placeholder:text-[#888] text-sm"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+          />
+          <Button 
+            onClick={handleSend}
+            disabled={!input.trim() || isLoading}
+            size="sm"
+            className="bg-[#007acc] hover:bg-[#005a9e] text-white h-8 w-8 p-0"
+          >
+            <Send className="h-3 w-3" />
+          </Button>
+        </div>
+        
+        {/* Agent/Model Selection */}
+        <div className="flex items-center gap-2">
+          <Select value={`${llmProvider}-${model}`} onValueChange={(value) => {
+            const [provider, modelName] = value.split('-');
+            setLlmProvider(provider as any);
+            setModel(modelName);
+          }}>
+            <SelectTrigger className="w-full bg-[#2d2d30] border-[#454545] text-[#cccccc] text-xs h-7">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-[#2d2d30] border-[#454545] text-[#cccccc]">
+              <SelectItem value="gemini-gemini-1.5-flash" className="text-xs">GPT-4.1</SelectItem>
+              <SelectItem value="gemini-gemini-1.5-pro" className="text-xs">GPT-4</SelectItem>
+              <SelectItem value="openai-gpt-4" className="text-xs">Claude</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>
