@@ -217,7 +217,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => onAddToScript?.(message.content)}
+                    onClick={() => {
+                      onAddToScript?.(message.content);
+                      toast({ title: 'Added to Script', description: 'Content added to your document.' });
+                    }}
                     className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e]"
                   >
                     <Plus className="h-3 w-3 mr-1" />
@@ -335,17 +338,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
         {/* Agent/Model Selection */}
         <div className="flex items-center gap-2">
           <Select value={`${llmProvider}-${model}`} onValueChange={(value) => {
-            const [provider, modelName] = value.split('-');
-            setLlmProvider(provider as any);
-            setModel(modelName);
+            const parts = value.split('-');
+            setLlmProvider(parts[0] as any);
+            setModel(parts.slice(1).join('-'));
           }}>
             <SelectTrigger className="w-full bg-[#2d2d30] border-[#454545] text-[#cccccc] text-xs h-7">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-[#2d2d30] border-[#454545] text-[#cccccc]">
-              <SelectItem value="gemini-gemini-1.5-flash" className="text-xs">GPT-4.1</SelectItem>
-              <SelectItem value="gemini-gemini-1.5-pro" className="text-xs">GPT-4</SelectItem>
-              <SelectItem value="openai-gpt-4" className="text-xs">Claude</SelectItem>
+              <SelectItem value="gemini-gemini-1.5-flash" className="text-xs">Gemini Flash</SelectItem>
+              <SelectItem value="gemini-gemini-1.5-pro" className="text-xs">Gemini Pro</SelectItem>
             </SelectContent>
           </Select>
         </div>
