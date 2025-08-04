@@ -1,51 +1,22 @@
-// File: components/MergedDocumentEditor.tsx
-
 import React, { useState } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Button } from '@/components/ui/button';
 import { Save, FileText, Plus, Undo, Redo, X, Send, MessageCircle } from 'lucide-react';
 import Sidebar from './Sidebar';
 import ChatPanel from './ChatPanel';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import { Image } from '@tiptap/extension-image';
-import { Table } from '@tiptap/extension-table';
-import { TableRow } from '@tiptap/extension-table-row';
-import { TableCell } from '@tiptap/extension-table-cell';
-import { TableHeader } from '@tiptap/extension-table-header';
-import { Youtube } from '@tiptap/extension-youtube';
-import { TaskList } from '@tiptap/extension-task-list';
-import { TaskItem } from '@tiptap/extension-task-item';
+import RichTextEditor from 'reactjs-tiptap-editor';
+import { BaseKit } from 'reactjs-tiptap-editor';
+import 'reactjs-tiptap-editor/style.css';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { callLLM } from '@/lib/llmServices';
 
-const extensions = [
-  StarterKit,
-  Image.configure({
-    HTMLAttributes: {
-      class: 'max-w-full h-auto',
-    },
-  }),
-  Table.configure({
-    resizable: true,
-  }),
-  TableRow,
-  TableHeader,
-  TableCell,
-  Youtube.configure({
-    width: 640,
-    height: 480,
-  }),
-  TaskList,
-  TaskItem.configure({
-    nested: true,
-  }),
-];
+const extensions = [BaseKit];
 
 const MergedDocumentEditor = ({ onSave, onAddToScript }) => {
+  const [content, setContent] = useState('<h1>Welcome to Content Creator</h1><p>Start writing your scripts here...</p>');
   const [autoComplete, setAutoComplete] = useState('');
   const [inlineChat, setInlineChat] = useState({ isOpen: false, position: { x: 0, y: 0 }, selectedText: '' });
   const [chatMessage, setChatMessage] = useState('');
@@ -53,39 +24,19 @@ const MergedDocumentEditor = ({ onSave, onAddToScript }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const { toast } = useToast();
 
-  const editor = useEditor({
-    extensions,
-    content: '<h1>Welcome to Content Creator</h1><p>Start writing your scripts here...</p>',
-    editorProps: {
-      attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-screen p-8',
-      },
-    },
-    onUpdate: ({ editor }) => {
-      const content = editor.getHTML();
-      handleContentChange(content);
-    },
-  });
-
   const handleSave = () => {
-    if (editor) {
-      const content = editor.getHTML();
-      onSave?.(content);
-      toast({ title: 'Document Saved', description: 'Your script has been saved successfully.' });
-    }
+    onSave?.(content);
+    toast({ title: 'Document Saved', description: 'Your script has been saved successfully.' });
   };
 
   const handleInlineChatSend = async () => {
-    if (!chatMessage.trim() || isLoading || !inlineChat.selectedText || !editor) return;
+    if (!chatMessage.trim() || isLoading || !inlineChat.selectedText) return;
     setIsLoading(true);
     try {
       const apiKey = 'AIzaSyBHwP9KH6Lg4h7YqGP3H_JoKvQMqRtdWz8';
       const response = await callLLM(chatMessage, 'gemini', 'gemini-1.5-flash', apiKey, `Selected text: "${inlineChat.selectedText}"`);
       
-      // Replace selected text with AI response
-      const content = editor.getHTML().replace(inlineChat.selectedText, response.content);
-      editor.commands.setContent(content);
-      
+      setContent(prevContent => prevContent.replace(inlineChat.selectedText, response.content));
       setInlineChat({ ...inlineChat, isOpen: false });
       setChatMessage('');
       toast({ title: 'Content Updated', description: 'AI has updated your selected text.' });
@@ -95,7 +46,8 @@ const MergedDocumentEditor = ({ onSave, onAddToScript }) => {
     setIsLoading(false);
   };
 
-  const handleContentChange = (content) => {
+  const handleContentChange = (value) => {
+    setContent(value);
     const selection = window.getSelection();
     if (selection && selection.toString().length > 0) {
       const range = selection.getRangeAt(0);
@@ -106,7 +58,7 @@ const MergedDocumentEditor = ({ onSave, onAddToScript }) => {
     }
 
     // Auto-completion functionality
-    const words = content.slice(-50);
+    const words = value.slice(-50);
     if (words.endsWith(' ')) {
       const apiKey = 'AIzaSyBHwP9KH6Lg4h7YqGP3H_JoKvQMqRtdWz8';
       callLLM(`Continue this text: "${words}"`, 'gemini', 'gemini-1.5-flash', apiKey).then(response => {
@@ -116,95 +68,19 @@ const MergedDocumentEditor = ({ onSave, onAddToScript }) => {
     }
   };
 
-  const addContentAtCursor = (content) => {
-    if (editor) {
-      editor.chain().focus().insertContent(content).run();
-    }
-  };
-
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
       <div className="flex flex-1 overflow-hidden">
         <ResizablePanelGroup direction="horizontal">
           <ResizablePanel defaultSize={isChatOpen ? 70 : 100} minSize={50}>
             {autoComplete && <div className="px-4 py-2 bg-muted/30 text-sm">Suggestion: {autoComplete}</div>}
-            <div className="flex-1 relative">
-              {/* Toolbar */}
-              <div className="border-b border-border bg-background p-2 flex items-center gap-2 flex-wrap">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleBold().run()}
-                  className={editor?.isActive('bold') ? 'bg-muted' : ''}
-                >
-                  <strong>B</strong>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleItalic().run()}
-                  className={editor?.isActive('italic') ? 'bg-muted' : ''}
-                >
-                  <em>I</em>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-                  className={editor?.isActive('heading', { level: 1 }) ? 'bg-muted' : ''}
-                >
-                  H1
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-                  className={editor?.isActive('heading', { level: 2 }) ? 'bg-muted' : ''}
-                >
-                  H2
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                  className={editor?.isActive('bulletList') ? 'bg-muted' : ''}
-                >
-                  • List
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    const url = prompt('Enter YouTube URL:');
-                    if (url) {
-                      editor?.chain().focus().setYoutubeVideo({ src: url }).run();
-                    }
-                  }}
-                >
-                  📹 YouTube
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    const url = prompt('Enter image URL:');
-                    if (url) {
-                      editor?.chain().focus().setImage({ src: url }).run();
-                    }
-                  }}
-                >
-                  🖼️ Image
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
-                >
-                  📊 Table
-                </Button>
-              </div>
-              
-              <EditorContent editor={editor} className="min-h-[500px]" />
+            <div className="flex-1 relative min-h-[500px]">
+              <RichTextEditor
+                output='html'
+                content={content}
+                onChangeContent={handleContentChange}
+                extensions={extensions}
+              />
               {inlineChat.isOpen && (
                 <Card className="absolute z-50 w-80 shadow-elevated border border-border bg-background"
                   style={{ left: Math.min(inlineChat.position.x, window.innerWidth - 320), top: inlineChat.position.y }}>
