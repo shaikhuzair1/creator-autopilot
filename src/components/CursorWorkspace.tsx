@@ -47,10 +47,11 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
     // In a real app, this would save to database or file system
   };
 
+  const [addToScriptFunction, setAddToScriptFunction] = useState<((content: string) => void) | null>(null);
+
   const handleAddToScript = (content: string) => {
-    // Use global function to add content to editor
-    if ((window as any).addToScript) {
-      (window as any).addToScript(content);
+    if (addToScriptFunction) {
+      addToScriptFunction(content);
     }
   };
 
@@ -145,7 +146,7 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
           <ResizablePanelGroup direction="horizontal">
             {/* Document Editor Panel */}
             <ResizablePanel defaultSize={isChatOpen ? 70 : 100} minSize={50}>
-                <MergedDocumentEditor onSave={handleSaveDocument} onAddToScript={handleAddToScript} />
+                <MergedDocumentEditor onSave={handleSaveDocument} onAddToScript={setAddToScriptFunction} />
             </ResizablePanel>
 
             {/* Chat Panel */}

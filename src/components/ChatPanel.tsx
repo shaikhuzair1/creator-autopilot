@@ -50,6 +50,22 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
     inputRef.current?.focus();
   }, []);
 
+  const generateRandomResponse = (query: string) => {
+    const responses = [
+      "That's an interesting question! Let me help you with that...",
+      "Based on your query, I would suggest focusing on the key points...",
+      "Here's what I think about your request...",
+      "Great question! Here's my analysis of the situation...",
+      "I understand what you're looking for. Let me provide some insights...",
+      "That's a thoughtful approach. Consider these aspects...",
+      "Excellent point! Here's how you can tackle this...",
+      "I see what you're getting at. Here's my recommendation...",
+      "This is a common challenge. Here's what usually works best...",
+      "Good thinking! You might want to explore these options..."
+    ];
+    return responses[Math.floor(Math.random() * responses.length)] + " " + query;
+  };
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -65,44 +81,18 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
     setInput('');
     setIsLoading(true);
 
-    try {
-      let context = '';
-
-      if (selectedCaseStudies.length > 0) {
-        const studies = caseStudies.filter(cs => selectedCaseStudies.includes(cs.id));
-        context += 'Referenced Case Studies:\n' + studies.map(cs => 
-          `${cs.title}: ${cs.content.keyTakeaways.join(', ')}`
-        ).join('\n') + '\n\n';
-      }
-
-      if (selectedTemplates.length > 0) {
-        const templates = scriptTemplates.filter(t => selectedTemplates.includes(t.id));
-        context += 'Referenced Templates:\n' + templates.map(t => 
-          `${t.title}: ${t.description}`
-        ).join('\n') + '\n\n';
-      }
-
-      const apiKey = 'AIzaSyBHwP9KH6Lg4h7YqGP3H_JoKvQMqRtdWz8';
-      const response = await callLLM(currentInput, llmProvider, model, apiKey, context);
-
+    // Simulate AI response delay
+    setTimeout(() => {
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response.content,
+        content: generateRandomResponse(currentInput),
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error('Error getting AI response:', error);
-      toast({
-        title: "Error",
-        description: "Failed to get AI response. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
       setIsLoading(false);
-    }
+    }, 1500 + Math.random() * 1000); // Random delay between 1.5-2.5 seconds
   };
 
   return (
@@ -197,9 +187,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
       <ScrollArea className="flex-1 px-3 py-2">
         <div className="space-y-3">
           {messages.map((message, index) => (
-            <div key={index} className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-[#007acc] flex items-center justify-center">
+            <div key={index} className={`space-y-2 ${message.role === 'user' ? 'flex flex-col items-end' : ''}`}>
+              <div className={`flex items-center gap-2 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${message.role === 'user' ? 'bg-[#007acc]' : 'bg-[#6a9955]'}`}>
                   {message.role === 'user' ? <User className="h-2 w-2 text-white" /> : <Bot className="h-2 w-2 text-white" />}
                 </div>
                 <span className="text-xs text-[#cccccc] font-medium">
@@ -209,11 +199,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
                   {new Date(message.timestamp).toLocaleTimeString()}
                 </span>
               </div>
-              <div className="ml-6 text-sm text-[#cccccc] leading-relaxed">
+              <div className={`text-sm text-[#cccccc] leading-relaxed max-w-[80%] p-3 rounded-lg ${
+                message.role === 'user' 
+                  ? 'bg-[#007acc] text-white ml-auto' 
+                  : 'bg-[#2d2d30] mr-6'
+              }`}>
                 {message.content}
               </div>
               {message.role === 'assistant' && (
-                <div className="ml-6 flex items-center gap-1">
+                <div className="mr-6 flex items-center gap-1">
                   <Button 
                     variant="ghost" 
                     size="sm"
@@ -226,7 +220,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
                     <Plus className="h-3 w-3 mr-1" />
                     Add to Script
                   </Button>
-                  <Button variant="ghost" size="sm" className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e]">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                      navigator.clipboard.writeText(message.content);
+                      toast({ title: 'Copied', description: 'Message copied to clipboard.' });
+                    }}
+                    className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e]"
+                  >
                     <Copy className="h-3 w-3" />
                   </Button>
                   <Button variant="ghost" size="sm" className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e]">
@@ -242,15 +244,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
           {isLoading && (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-[#007acc] flex items-center justify-center">
+                <div className="w-4 h-4 rounded-full bg-[#6a9955] flex items-center justify-center">
                   <Bot className="h-2 w-2 text-white" />
                 </div>
                 <span className="text-xs text-[#cccccc] font-medium">Copilot</span>
               </div>
-              <div className="ml-6 text-sm text-[#cccccc]">
+              <div className="bg-[#2d2d30] mr-6 max-w-[80%] p-3 rounded-lg text-sm text-[#cccccc]">
                 <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-3 w-3 border-b border-[#007acc]"></div>
-                  Thinking...
+                  <div className="flex space-x-1">
+                    <div className="w-1 h-1 bg-[#cccccc] rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                    <div className="w-1 h-1 bg-[#cccccc] rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                    <div className="w-1 h-1 bg-[#cccccc] rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                  </div>
+                  <span className="animate-pulse">Typing...</span>
                 </div>
               </div>
             </div>
@@ -301,8 +307,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask Copilot a question or type / for topics"
-            className="flex-1 bg-[#3c3c3c] border-[#454545] text-[#cccccc] placeholder:text-[#888] text-sm min-h-[32px] max-h-32 resize-none"
-            rows={1}
+            className="flex-1 bg-[#3c3c3c] border-[#454545] text-[#cccccc] placeholder:text-[#888] text-sm min-h-[40px] max-h-32 resize-none rounded-lg"
+            rows={2}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -314,9 +320,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
             size="sm"
-            className="bg-[#007acc] hover:bg-[#005a9e] text-white h-8 w-8 p-0 flex-shrink-0"
+            className="bg-[#007acc] hover:bg-[#005a9e] text-white h-10 w-10 p-0 flex-shrink-0 rounded-lg"
           >
-            <Send className="h-3 w-3" />
+            <Send className="h-4 w-4" />
           </Button>
         </div>
         
@@ -327,12 +333,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
             setLlmProvider(parts[0] as any);
             setModel(parts.slice(1).join('-'));
           }}>
-            <SelectTrigger className="w-32 bg-[#2d2d30] border-[#454545] text-[#cccccc] text-xs h-6">
+            <SelectTrigger className="w-24 bg-[#2d2d30] border-[#454545] text-[#cccccc] text-xs h-5">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-[#2d2d30] border-[#454545] text-[#cccccc]">
-              <SelectItem value="gemini-gemini-1.5-flash" className="text-xs">Gemini Flash</SelectItem>
-              <SelectItem value="gemini-gemini-1.5-pro" className="text-xs">Gemini Pro</SelectItem>
+              <SelectItem value="gemini-gemini-1.5-flash" className="text-xs">Flash</SelectItem>
+              <SelectItem value="gemini-gemini-1.5-pro" className="text-xs">Pro</SelectItem>
             </SelectContent>
           </Select>
         </div>
