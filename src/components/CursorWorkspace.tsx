@@ -48,8 +48,10 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
   };
 
   const handleAddToScript = (content: string) => {
-    // This will be passed to the DocumentEditor to add content at cursor
-    console.log('Adding to script:', content);
+    // Use global function to add content to editor
+    if ((window as any).addToScript) {
+      (window as any).addToScript(content);
+    }
   };
 
   const handleLogin = (user: any) => {

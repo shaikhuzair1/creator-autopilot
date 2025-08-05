@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -43,7 +43,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
   const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
   const [showCaseStudies, setShowCaseStudies] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -258,22 +258,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
         </div>
       </ScrollArea>
 
-      {/* Files context */}
-      <div className="px-3 py-2 border-t border-[#2d2d30] bg-[#1e1e1e]">
-        <div className="text-xs text-[#6a9955] mb-1">11 files changed</div>
-        <div className="space-y-1 max-h-20 overflow-y-auto">
-          <div className="flex items-center gap-2 text-xs text-[#cccccc]">
-            <Files className="h-3 w-3" />
-            <span>script_template.tsx</span>
-            <span className="text-[#6a9955]">src/components/...</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-[#cccccc]">
-            <Files className="h-3 w-3" />
-            <span>content_creation.tsx</span>
-            <span className="text-[#6a9955]">src/components/...</span>
-          </div>
-        </div>
-      </div>
 
       {/* Input */}
       <div className="p-3 border-t border-[#2d2d30] bg-[#1e1e1e] space-y-2">
@@ -311,13 +295,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
           </div>
         )}
         
-        <div className="flex gap-2">
-          <Input
+        <div className="flex gap-2 items-end">
+          <Textarea
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask Copilot a question or type / for topics"
-            className="flex-1 bg-[#3c3c3c] border-[#454545] text-[#cccccc] placeholder:text-[#888] text-sm"
+            className="flex-1 bg-[#3c3c3c] border-[#454545] text-[#cccccc] placeholder:text-[#888] text-sm min-h-[32px] max-h-32 resize-none"
+            rows={1}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -329,7 +314,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
             size="sm"
-            className="bg-[#007acc] hover:bg-[#005a9e] text-white h-8 w-8 p-0"
+            className="bg-[#007acc] hover:bg-[#005a9e] text-white h-8 w-8 p-0 flex-shrink-0"
           >
             <Send className="h-3 w-3" />
           </Button>
@@ -342,7 +327,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
             setLlmProvider(parts[0] as any);
             setModel(parts.slice(1).join('-'));
           }}>
-            <SelectTrigger className="w-full bg-[#2d2d30] border-[#454545] text-[#cccccc] text-xs h-7">
+            <SelectTrigger className="w-32 bg-[#2d2d30] border-[#454545] text-[#cccccc] text-xs h-6">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-[#2d2d30] border-[#454545] text-[#cccccc]">
