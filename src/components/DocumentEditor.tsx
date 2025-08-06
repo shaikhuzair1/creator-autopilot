@@ -15,7 +15,7 @@ import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
-const MergedDocumentEditor = ({ onSave, onAddToScript }) => {
+const MergedDocumentEditor = ({ onSave, onAddToScript, content, projectTitle }) => {
   const [autoComplete, setAutoComplete] = useState('');
   const [inlineChat, setInlineChat] = useState({ isOpen: false, position: { x: 0, y: 0 }, selectedText: '' });
   const [chatMessage, setChatMessage] = useState('');
@@ -48,7 +48,7 @@ const MergedDocumentEditor = ({ onSave, onAddToScript }) => {
         height: 480,
       }),
     ],
-    content: '<h1>Welcome to Content Creator</h1><p>Start writing your scripts here...</p>',
+    content: content || '<h1>Welcome to Content Creator</h1><p>Start writing your scripts here...</p>',
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
       // Auto-completion functionality
@@ -70,6 +70,13 @@ const MergedDocumentEditor = ({ onSave, onAddToScript }) => {
   });
 
   const editorRef = useRef(editor);
+
+  // Update editor content when content prop changes
+  useEffect(() => {
+    if (editor && content && editor.getHTML() !== content) {
+      editor.commands.setContent(content);
+    }
+  }, [editor, content]);
 
   // Function to insert content at cursor position
   const insertContent = useCallback((newContent: string) => {
@@ -151,15 +158,20 @@ const MergedDocumentEditor = ({ onSave, onAddToScript }) => {
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
       {/* Editor Toolbar */}
-      <div className="flex items-center gap-2 p-3 border-b border-border bg-card flex-wrap">
-        <Button variant="ghost" size="sm" onClick={handleSave}>
-          <Save className="h-4 w-4 mr-2" />
-          Save
-        </Button>
-        <div className="h-4 w-px bg-border mx-2" />
+      <div className="flex items-center justify-between p-3 border-b border-border bg-card flex-wrap">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={handleSave}>
+            <Save className="h-4 w-4 mr-2" />
+            Save
+          </Button>
+          <span className="text-sm text-muted-foreground">{projectTitle}</span>
+        </div>
         
-        {/* Formatting Tools */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="h-4 w-px bg-border mx-2" />
+          
+          {/* Formatting Tools */}
+          <div className="flex items-center gap-1">
           <Button 
             variant="ghost" 
             size="sm" 
@@ -250,7 +262,17 @@ const MergedDocumentEditor = ({ onSave, onAddToScript }) => {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+            onClick={() => {
+              const rows = prompt('Enter number of rows:', '3');
+              const cols = prompt('Enter number of columns:', '3');
+              if (rows && cols) {
+                editor?.chain().focus().insertTable({ 
+                  rows: parseInt(rows), 
+                  cols: parseInt(cols), 
+                  withHeaderRow: true 
+                }).run();
+              }
+            }}
           >
             <TableIcon className="h-4 w-4" />
           </Button>
@@ -283,6 +305,7 @@ const MergedDocumentEditor = ({ onSave, onAddToScript }) => {
           >
             <YoutubeIcon className="h-4 w-4" />
           </Button>
+        </div>
         </div>
       </div>
 

@@ -96,6 +96,16 @@
     --input: 240 5% 15%;
     --ring: 222 100% 65%;
 
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 222 100% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 222 100% 65%;
+    --sidebar-text-muted: 240 5% 64%;
+
     /* Editor colors */
     --editor-background: 240 10% 8%;
     --editor-selection: 222 100% 25%;

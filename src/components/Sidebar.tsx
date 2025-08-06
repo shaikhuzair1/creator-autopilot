@@ -13,9 +13,21 @@ interface SidebarProps {
   onToggle: () => void;
   onTabChange: (tabId: string) => void;
   onCreateNewChat: () => void;
+  projects?: Array<{id: string, title: string, content: string, createdAt: string, lastModified: string}>;
+  currentProjectId?: string | null;
+  onProjectSelect?: (projectId: string) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, activeTab, onToggle, onTabChange, onCreateNewChat }) => {
+const Sidebar: React.FC<SidebarProps> = ({ 
+  isCollapsed, 
+  activeTab, 
+  onToggle, 
+  onTabChange, 
+  onCreateNewChat,
+  projects = [],
+  currentProjectId,
+  onProjectSelect
+}) => {
   const [isGeneralOpen, setIsGeneralOpen] = useState(true);
   const [isWorkflowsOpen, setIsWorkflowsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -101,6 +113,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, activeTab, onToggle, onT
                 )}
               </Button>
             ))}
+            
+            {/* Projects Subsection */}
+            {activeTab === 'projects' && !isCollapsed && projects.length > 0 && (
+              <div className="ml-8 mt-2 space-y-1">
+                <div className="text-xs text-sidebar-text-muted font-medium px-3 py-1">Recent Projects</div>
+                {projects.slice(0, 5).map((project) => (
+                  <Button
+                    key={project.id}
+                    variant="ghost"
+                    className={cn(
+                      "w-full justify-start text-left h-8 px-3 transition-colors text-xs",
+                      currentProjectId === project.id 
+                        ? "bg-primary/20 text-primary border-l-2 border-primary" 
+                        : "text-sidebar-text-muted hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                    )}
+                    onClick={() => onProjectSelect?.(project.id)}
+                  >
+                    <span className="truncate">{project.title}</span>
+                  </Button>
+                ))}
+              </div>
+            )}
           </CollapsibleContent>
         </Collapsible>
 

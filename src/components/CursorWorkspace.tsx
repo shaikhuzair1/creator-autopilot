@@ -28,23 +28,49 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [projects, setProjects] = useState<Array<{id: string, title: string, content: string}>>([
-    { id: '1', title: 'Welcome Script', content: '# Welcome Script\n\nStart writing your content here...' }
-  ]);
+  const [projects, setProjects] = useState<Array<{id: string, title: string, content: string, createdAt: string, lastModified: string}>>([]);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
 
   useEffect(() => {
     const user = localStorage.getItem('currentUser');
     if (user) {
       setCurrentUser(JSON.parse(user));
+    }
+    
+    // Load projects from localStorage
+    const savedProjects = localStorage.getItem('contentProjects');
+    if (savedProjects) {
+      const parsedProjects = JSON.parse(savedProjects);
+      setProjects(parsedProjects);
+      if (parsedProjects.length > 0) {
+        setCurrentProjectId(parsedProjects[0].id);
+      }
     } else {
-      setIsAuthModalOpen(true);
+      // Create default project
+      const defaultProject = {
+        id: '1',
+        title: 'Welcome Script',
+        content: '<h1>Welcome to Content Creator</h1><p>Start writing your scripts here...</p>',
+        createdAt: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+      };
+      setProjects([defaultProject]);
+      setCurrentProjectId(defaultProject.id);
+      localStorage.setItem('contentProjects', JSON.stringify([defaultProject]));
     }
   }, []);
 
   const handleSaveDocument = (content: string) => {
-    // Save document logic - for now just log
-    console.log('Saving document:', content);
-    // In a real app, this would save to database or file system
+    if (!currentProjectId) return;
+    
+    const updatedProjects = projects.map(project => 
+      project.id === currentProjectId 
+        ? { ...project, content, lastModified: new Date().toISOString() }
+        : project
+    );
+    
+    setProjects(updatedProjects);
+    localStorage.setItem('contentProjects', JSON.stringify(updatedProjects));
   };
 
   const [addToScriptFunction, setAddToScriptFunction] = useState<((content: string) => void) | null>(null);
@@ -131,13 +157,16 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <div className="flex-shrink-0">
+        <div className={`flex-shrink-0 transition-all duration-300 ${isCollapsed ? 'w-0' : 'w-64'}`}>
           <Sidebar
             isCollapsed={isCollapsed}
             activeTab={activeTab}
             onToggle={onToggle}
             onTabChange={onTabChange}
             onCreateNewChat={onCreateNewChat}
+            projects={projects}
+            currentProjectId={currentProjectId}
+            onProjectSelect={setCurrentProjectId}
           />
         </div>
 
@@ -146,7 +175,12 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
           <ResizablePanelGroup direction="horizontal">
             {/* Document Editor Panel */}
             <ResizablePanel defaultSize={isChatOpen ? 70 : 100} minSize={50}>
-                <MergedDocumentEditor onSave={handleSaveDocument} onAddToScript={setAddToScriptFunction} />
+              <MergedDocumentEditor 
+                onSave={handleSaveDocument} 
+                onAddToScript={setAddToScriptFunction}
+                content={projects.find(p => p.id === currentProjectId)?.content || ''}
+                projectTitle={projects.find(p => p.id === currentProjectId)?.title || 'Untitled'}
+              />
             </ResizablePanel>
 
             {/* Chat Panel */}
@@ -168,7 +202,15 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
       {/* Auth Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
+        onClose={() => {
+          setIsAuthModalOpen(false);
+          // Don't force auth if user cancels
+          if (!currentUser) {
+            const guestUser = { name: 'Guest User', email: 'guest@example.com' };
+            setCurrentUser(guestUser);
+            localStorage.setItem('currentUser', JSON.stringify(guestUser));
+          }
+        }}
         onLogin={handleLogin}
       />
     </div>

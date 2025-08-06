@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,24 +6,73 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { projects } from '@/data/mockData';
+import { Input } from '@/components/ui/input';
 import { Folder, Plus, Edit, Trash2, Eye, MoreHorizontal, Calendar, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Project } from '@/types';
+
+type LocalProject = {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+  lastModified: string;
+  status?: string;
+  platform?: string;
+};
 
 const Projects: React.FC = () => {
   const [filter, setFilter] = useState<string>('All');
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [projects, setProjects] = useState<LocalProject[]>([]);
+  const [selectedProject, setSelectedProject] = useState<LocalProject | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<string>('');
+  const [newProjectTitle, setNewProjectTitle] = useState<string>('');
   const { toast } = useToast();
+
+  useEffect(() => {
+    const savedProjects = localStorage.getItem('contentProjects');
+    if (savedProjects) {
+      const parsedProjects = JSON.parse(savedProjects).map((p: any) => ({
+        ...p,
+        status: p.status || 'Draft',
+        platform: p.platform || 'General'
+      }));
+      setProjects(parsedProjects);
+    }
+  }, []);
   
   const filters = ['All', 'Draft', 'In Progress', 'Published', 'Scheduled'];
 
   const filteredProjects = projects.filter(project => 
     filter === 'All' || project.status === filter
   );
+
+  const createNewProject = () => {
+    if (!newProjectTitle.trim()) return;
+    
+    const newProject: LocalProject = {
+      id: Date.now().toString(),
+      title: newProjectTitle,
+      content: '<h1>' + newProjectTitle + '</h1><p>Start writing your content here...</p>',
+      createdAt: new Date().toISOString(),
+      lastModified: new Date().toISOString(),
+      status: 'Draft',
+      platform: 'General'
+    };
+    
+    const updatedProjects = [...projects, newProject];
+    setProjects(updatedProjects);
+    localStorage.setItem('contentProjects', JSON.stringify(updatedProjects));
+    setNewProjectTitle('');
+    setIsNewProjectOpen(false);
+    
+    toast({
+      title: "Project Created",
+      description: `New project "${newProject.title}" has been created`,
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -35,19 +84,25 @@ const Projects: React.FC = () => {
     }
   };
 
-  const handleViewDetails = (project: Project) => {
+  const handleViewDetails = (project: LocalProject) => {
     setSelectedProject(project);
     setIsDetailsOpen(true);
   };
 
-  const handleChangeStatus = (project: Project) => {
+  const handleChangeStatus = (project: LocalProject) => {
     setSelectedProject(project);
-    setNewStatus(project.status);
+    setNewStatus(project.status || 'Draft');
     setIsStatusDialogOpen(true);
   };
 
   const handleUpdateStatus = () => {
     if (selectedProject && newStatus) {
+      const updatedProjects = projects.map(p => 
+        p.id === selectedProject.id ? { ...p, status: newStatus, lastModified: new Date().toISOString() } : p
+      );
+      setProjects(updatedProjects);
+      localStorage.setItem('contentProjects', JSON.stringify(updatedProjects));
+      
       toast({
         title: "Status Updated",
         description: `Project "${selectedProject.title}" status changed to ${newStatus}`,
@@ -56,7 +111,11 @@ const Projects: React.FC = () => {
     }
   };
 
-  const handleRemoveProject = (project: Project) => {
+  const handleRemoveProject = (project: LocalProject) => {
+    const updatedProjects = projects.filter(p => p.id !== project.id);
+    setProjects(updatedProjects);
+    localStorage.setItem('contentProjects', JSON.stringify(updatedProjects));
+    
     toast({
       title: "Project Removed",
       description: `Project "${project.title}" has been removed`,
@@ -66,9 +125,9 @@ const Projects: React.FC = () => {
   return (
     <div className="p-6 space-y-6 animate-fade-in">
       {/* Header */}
-      <Card className="shadow-elevated bg-gradient-to-r from-primary/5 to-primary-glow/5 border-primary/20">
+      <Card className="shadow-elevated bg-gradient-to-r from-primary/5 to-primary/5 border-primary/20">
         <CardHeader>
-          <CardTitle className="flex items-center text-primary">
+          <CardTitle className="flex items-center text-foreground">
             <Folder className="mr-2 h-5 w-5" />
             Content Projects
           </CardTitle>
@@ -78,7 +137,7 @@ const Projects: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            <Button variant="gradient" size="lg">
+            <Button onClick={() => setIsNewProjectOpen(true)} size="lg">
               <Plus className="mr-2 h-4 w-4" />
               New Project
             </Button>
@@ -131,14 +190,10 @@ const Projects: React.FC = () => {
                       {project.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{project.platform}</TableCell>
-                  <TableCell>{project.lastModified}</TableCell>
-                  <TableCell>
-                    {project.views ? project.views.toLocaleString() : '-'}
-                  </TableCell>
-                  <TableCell>
-                    {project.engagement ? `${project.engagement}%` : '-'}
-                  </TableCell>
+                <TableCell>{project.platform}</TableCell>
+                <TableCell>{new Date(project.lastModified).toLocaleDateString()}</TableCell>
+                <TableCell>-</TableCell>
+                <TableCell>-</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -239,19 +294,19 @@ const Projects: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Last Modified</h4>
-                  <p className="text-foreground">{selectedProject.lastModified}</p>
+                  <p className="text-foreground">{new Date(selectedProject.lastModified).toLocaleDateString()}</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-2">Views</h4>
-                  <p className="text-foreground">{selectedProject.views ? selectedProject.views.toLocaleString() : 'N/A'}</p>
+                  <h4 className="font-semibold mb-2">Created</h4>
+                  <p className="text-foreground">{new Date(selectedProject.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
-              {selectedProject.engagement && (
-                <div>
-                  <h4 className="font-semibold mb-2">Engagement Rate</h4>
-                  <p className="text-foreground">{selectedProject.engagement}%</p>
+              <div>
+                <h4 className="font-semibold mb-2">Content Preview</h4>
+                <div className="text-sm text-muted-foreground bg-muted p-3 rounded max-h-32 overflow-y-auto">
+                  {selectedProject.content.replace(/<[^>]*>/g, '').slice(0, 200)}...
                 </div>
-              )}
+              </div>
               <div className="flex gap-2 pt-4">
                 <Button variant="default">
                   <Edit className="mr-2 h-4 w-4" />
@@ -290,6 +345,41 @@ const Projects: React.FC = () => {
             <div className="flex gap-2">
               <Button onClick={handleUpdateStatus}>Update Status</Button>
               <Button variant="outline" onClick={() => setIsStatusDialogOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Project Dialog */}
+      <Dialog open={isNewProjectOpen} onOpenChange={setIsNewProjectOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Project</DialogTitle>
+            <DialogDescription>
+              Enter a title for your new content project
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Project title..."
+              value={newProjectTitle}
+              onChange={(e) => setNewProjectTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  createNewProject();
+                }
+              }}
+            />
+            <div className="flex gap-2">
+              <Button onClick={createNewProject} disabled={!newProjectTitle.trim()}>
+                Create Project
+              </Button>
+              <Button variant="outline" onClick={() => {
+                setIsNewProjectOpen(false);
+                setNewProjectTitle('');
+              }}>
                 Cancel
               </Button>
             </div>
