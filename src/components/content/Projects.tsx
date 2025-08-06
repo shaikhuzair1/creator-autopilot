@@ -111,6 +111,11 @@ const Projects: React.FC = () => {
     }
   };
 
+  const handleEditProject = (project: LocalProject) => {
+    // Send message to parent to switch to editor with this project
+    window.dispatchEvent(new CustomEvent('editProject', { detail: project }));
+  };
+
   const handleRemoveProject = (project: LocalProject) => {
     const updatedProjects = projects.filter(p => p.id !== project.id);
     setProjects(updatedProjects);
@@ -202,10 +207,14 @@ const Projects: React.FC = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleViewDetails(project)}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Details
-                        </DropdownMenuItem>
+                         <DropdownMenuItem onClick={() => handleViewDetails(project)}>
+                           <Eye className="mr-2 h-4 w-4" />
+                           View Details
+                         </DropdownMenuItem>
+                         <DropdownMenuItem onClick={() => handleEditProject(project)}>
+                           <Edit className="mr-2 h-4 w-4" />
+                           Edit Project
+                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleChangeStatus(project)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Change Status
@@ -308,7 +317,10 @@ const Projects: React.FC = () => {
                 </div>
               </div>
               <div className="flex gap-2 pt-4">
-                <Button variant="default">
+                <Button variant="default" onClick={() => {
+                  handleEditProject(selectedProject);
+                  setIsDetailsOpen(false);
+                }}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit Project
                 </Button>

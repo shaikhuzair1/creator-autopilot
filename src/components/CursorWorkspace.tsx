@@ -31,6 +31,25 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
   const [projects, setProjects] = useState<Array<{id: string, title: string, content: string, createdAt: string, lastModified: string}>>([]);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
 
+  const createNewProject = () => {
+    const title = prompt('Enter project title:');
+    if (!title?.trim()) return;
+    
+    const newProject = {
+      id: Date.now().toString(),
+      title: title.trim(),
+      content: `<h1>${title}</h1><p>Start writing your content here...</p>`,
+      createdAt: new Date().toISOString(),
+      lastModified: new Date().toISOString()
+    };
+    
+    const updatedProjects = [...projects, newProject];
+    setProjects(updatedProjects);
+    localStorage.setItem('contentProjects', JSON.stringify(updatedProjects));
+    setCurrentProjectId(newProject.id);
+    onTabChange('dashboard');
+  };
+
   useEffect(() => {
     const user = localStorage.getItem('currentUser');
     if (user) {
@@ -58,7 +77,20 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
       setCurrentProjectId(defaultProject.id);
       localStorage.setItem('contentProjects', JSON.stringify([defaultProject]));
     }
-  }, []);
+
+    // Listen for edit project events from Projects component
+    const handleEditProject = (event: CustomEvent) => {
+      const project = event.detail;
+      setCurrentProjectId(project.id);
+      onTabChange('dashboard');
+    };
+
+    window.addEventListener('editProject', handleEditProject as EventListener);
+    
+    return () => {
+      window.removeEventListener('editProject', handleEditProject as EventListener);
+    };
+  }, [onTabChange]);
 
   const handleSaveDocument = (content: string) => {
     if (!currentProjectId) return;
@@ -157,16 +189,28 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <div className={`flex-shrink-0 transition-all duration-300 ${isCollapsed ? 'w-0' : 'w-64'}`}>
+        <div className={`flex-shrink-0 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
           <Sidebar
             isCollapsed={isCollapsed}
             activeTab={activeTab}
             onToggle={onToggle}
-            onTabChange={onTabChange}
-            onCreateNewChat={onCreateNewChat}
+            onTabChange={(tabId) => {
+              onTabChange(tabId);
+              if (tabId === 'projects') {
+                // Refresh projects when switching to projects tab
+                const savedProjects = localStorage.getItem('contentProjects');
+                if (savedProjects) {
+                  setProjects(JSON.parse(savedProjects));
+                }
+              }
+            }}
+            onCreateNewChat={createNewProject}
             projects={projects}
             currentProjectId={currentProjectId}
-            onProjectSelect={setCurrentProjectId}
+            onProjectSelect={(projectId) => {
+              setCurrentProjectId(projectId);
+              onTabChange('dashboard'); // Switch to editor view
+            }}
           />
         </div>
 
@@ -204,12 +248,6 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
         isOpen={isAuthModalOpen}
         onClose={() => {
           setIsAuthModalOpen(false);
-          // Don't force auth if user cancels
-          if (!currentUser) {
-            const guestUser = { name: 'Guest User', email: 'guest@example.com' };
-            setCurrentUser(guestUser);
-            localStorage.setItem('currentUser', JSON.stringify(guestUser));
-          }
         }}
         onLogin={handleLogin}
       />

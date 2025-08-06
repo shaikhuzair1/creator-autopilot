@@ -322,7 +322,7 @@ const MergedDocumentEditor = ({ onSave, onAddToScript, content, projectTitle }) 
         <div className="h-full overflow-y-auto p-4">
           <EditorContent 
             editor={editor} 
-            className="prose prose-invert max-w-none min-h-full focus:outline-none"
+            className="prose prose-invert max-w-none min-h-[100vh] focus:outline-none"
           />
         </div>
         
