@@ -96,34 +96,35 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#1e1e1e] text-[#cccccc] border-l border-[#2d2d30]">
+    <div className="h-full flex flex-col bg-gradient-to-b from-card to-card/95 text-foreground border-l border-border shadow-xl">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-[#2d2d30] bg-[#252526]">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-[#cccccc] uppercase tracking-wider">CHAT</span>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/80 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+          <span className="text-sm font-semibold text-foreground font-heading">AI Copilot</span>
         </div>
-        <Button variant="ghost" size="sm" onClick={onClose} className="h-6 w-6 p-0 hover:bg-[#2a2d2e]">
-          <X className="h-3 w-3 text-[#cccccc]" />
+        <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 hover:bg-accent rounded-lg transition-all duration-200">
+          <X className="h-4 w-4 text-muted-foreground" />
         </Button>
       </div>
 
       {/* Context Selection */}
-      <div className="px-3 py-2 border-b border-[#2d2d30] bg-[#1e1e1e]">
-        <div className="flex gap-1 flex-wrap">
+      <div className="px-4 py-3 border-b border-border bg-muted/20">
+        <div className="flex gap-2 flex-wrap">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => setShowCaseStudies(!showCaseStudies)}
-            className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e] border border-[#454545]"
+            className="text-xs h-7 px-3 text-muted-foreground hover:bg-primary/10 hover:text-primary border-muted-foreground/20 rounded-full transition-all duration-200"
           >
             <FileText className="h-3 w-3 mr-1" />
             Case Studies
           </Button>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => setShowTemplates(!showTemplates)}
-            className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e] border border-[#454545]"
+            className="text-xs h-7 px-3 text-muted-foreground hover:bg-primary/10 hover:text-primary border-muted-foreground/20 rounded-full transition-all duration-200"
           >
             <Lightbulb className="h-3 w-3 mr-1" />
             Templates
@@ -184,38 +185,46 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 px-3 py-2">
-        <div className="space-y-3">
+      <ScrollArea className="flex-1 px-4 py-3">
+        <div className="space-y-4">
           {messages.map((message, index) => (
             <div key={index} className={`space-y-2 ${message.role === 'user' ? 'flex flex-col items-end' : ''}`}>
               <div className={`flex items-center gap-2 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                <div className={`w-4 h-4 rounded-full flex items-center justify-center ${message.role === 'user' ? 'bg-[#007acc]' : 'bg-[#6a9955]'}`}>
-                  {message.role === 'user' ? <User className="h-2 w-2 text-white" /> : <Bot className="h-2 w-2 text-white" />}
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-sm ${
+                  message.role === 'user' 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-accent text-accent-foreground'
+                }`}>
+                  {message.role === 'user' ? <User className="h-3 w-3" /> : <Bot className="h-3 w-3" />}
                 </div>
-                <span className="text-xs text-[#cccccc] font-medium">
-                  {message.role === 'user' ? 'You' : 'Copilot'}
+                <span className="text-xs text-muted-foreground font-medium">
+                  {message.role === 'user' ? 'You' : 'AI Assistant'}
                 </span>
-                <span className="text-xs text-[#6a9955]">
+                <span className="text-xs text-muted-foreground/70">
                   {new Date(message.timestamp).toLocaleTimeString()}
                 </span>
               </div>
-              <div className={`text-sm text-[#cccccc] leading-relaxed max-w-[80%] p-3 rounded-lg ${
+              <div className={`text-sm leading-relaxed max-w-[85%] p-4 rounded-2xl shadow-sm border transition-all duration-200 ${
                 message.role === 'user' 
-                  ? 'bg-[#007acc] text-white ml-auto' 
-                  : 'bg-[#2d2d30] mr-6'
+                  ? 'bg-primary text-primary-foreground ml-auto border-primary/20' 
+                  : 'bg-card text-foreground mr-8 border-border hover:shadow-md'
               }`}>
                 {message.content}
               </div>
               {message.role === 'assistant' && (
-                <div className="mr-6 flex items-center gap-1">
+                <div className="mr-8 flex items-center gap-2 animate-fade-in">
                   <Button 
-                    variant="ghost" 
+                    variant="outline" 
                     size="sm"
                     onClick={() => {
                       onAddToScript?.(message.content);
-                      toast({ title: 'Added to Script', description: 'Content added to your document.' });
+                      toast({ 
+                        title: '✨ Added to Script', 
+                        description: 'Content successfully added to your document.',
+                        className: 'bg-success text-success-foreground border-success/20'
+                      });
                     }}
-                    className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e]"
+                    className="text-xs h-7 px-3 text-muted-foreground hover:bg-primary/10 hover:text-primary border-muted-foreground/20 rounded-full transition-all duration-200 hover:scale-105"
                   >
                     <Plus className="h-3 w-3 mr-1" />
                     Add to Script
@@ -225,16 +234,20 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
                     size="sm" 
                     onClick={() => {
                       navigator.clipboard.writeText(message.content);
-                      toast({ title: 'Copied', description: 'Message copied to clipboard.' });
+                      toast({ 
+                        title: '📋 Copied', 
+                        description: 'Message copied to clipboard.',
+                        className: 'bg-accent text-accent-foreground'
+                      });
                     }}
-                    className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e]"
+                    className="text-xs h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-full transition-all duration-200"
                   >
                     <Copy className="h-3 w-3" />
                   </Button>
-                  <Button variant="ghost" size="sm" className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e]">
+                  <Button variant="ghost" size="sm" className="text-xs h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-full transition-all duration-200">
                     <ThumbsUp className="h-3 w-3" />
                   </Button>
-                  <Button variant="ghost" size="sm" className="text-xs h-6 px-2 text-[#cccccc] hover:bg-[#2a2d2e]">
+                  <Button variant="ghost" size="sm" className="text-xs h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-full transition-all duration-200">
                     <ThumbsDown className="h-3 w-3" />
                   </Button>
                 </div>
@@ -242,21 +255,21 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
             </div>
           ))}
           {isLoading && (
-            <div className="space-y-2">
+            <div className="space-y-2 animate-fade-in">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-[#6a9955] flex items-center justify-center">
-                  <Bot className="h-2 w-2 text-white" />
+                <div className="w-6 h-6 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-sm">
+                  <Bot className="h-3 w-3" />
                 </div>
-                <span className="text-xs text-[#cccccc] font-medium">Copilot</span>
+                <span className="text-xs text-muted-foreground font-medium">AI Assistant</span>
               </div>
-              <div className="bg-[#2d2d30] mr-6 max-w-[80%] p-3 rounded-lg text-sm text-[#cccccc]">
-                <div className="flex items-center gap-2">
+              <div className="bg-card text-foreground mr-8 max-w-[85%] p-4 rounded-2xl shadow-sm border border-border">
+                <div className="flex items-center gap-3">
                   <div className="flex space-x-1">
-                    <div className="w-1 h-1 bg-[#cccccc] rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                    <div className="w-1 h-1 bg-[#cccccc] rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                    <div className="w-1 h-1 bg-[#cccccc] rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
                   </div>
-                  <span className="animate-pulse">Typing...</span>
+                  <span className="text-sm text-muted-foreground animate-pulse">AI is thinking...</span>
                 </div>
               </div>
             </div>
@@ -266,7 +279,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
 
 
       {/* Input */}
-      <div className="p-3 border-t border-[#2d2d30] bg-[#1e1e1e] space-y-2">
+      <div className="p-4 border-t border-border bg-card/80 backdrop-blur-sm space-y-3">
         {/* Selected Context Display */}
         {(selectedCaseStudies.length > 0 || selectedTemplates.length > 0) && (
           <div className="flex gap-1 flex-wrap">
@@ -301,13 +314,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
           </div>
         )}
         
-        <div className="flex gap-2 items-end">
+        <div className="flex gap-3 items-end">
           <Textarea
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Copilot a question or type / for topics"
-            className="flex-1 bg-[#3c3c3c] border-[#454545] text-[#cccccc] placeholder:text-[#888] text-sm min-h-[40px] max-h-32 resize-none rounded-lg"
+            placeholder="Ask AI assistant anything..."
+            className="flex-1 bg-background border-border text-foreground placeholder:text-muted-foreground text-sm min-h-[44px] max-h-32 resize-none rounded-xl shadow-sm focus:shadow-md transition-all duration-200"
             rows={2}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -320,7 +333,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose, onAddToScript }) => {
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
             size="sm"
-            className="bg-[#007acc] hover:bg-[#005a9e] text-white h-10 w-10 p-0 flex-shrink-0 rounded-lg"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground h-11 w-11 p-0 flex-shrink-0 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
           >
             <Send className="h-4 w-4" />
           </Button>

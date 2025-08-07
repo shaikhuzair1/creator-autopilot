@@ -5,7 +5,21 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { navigationItems } from '@/data/mockData';
 import { NavigationItem } from '@/types';
-import { ChevronDown, Menu, Plus, MessageSquare, User, Settings } from 'lucide-react';
+import { 
+  ChevronDown, 
+  Menu, 
+  Plus, 
+  FileText,
+  MessageSquare,
+  FolderOpen,
+  Layout,
+  Sparkles,
+  BookOpen,
+  Video,
+  User,
+  Settings,
+  Zap
+} from 'lucide-react';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -60,15 +74,28 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Create New Chat Button */}
+        {/* Create New Project Button */}
       {!isCollapsed && (
         <div className="px-4 py-2">
           <Button
             onClick={onCreateNewChat}
-            className="w-full bg-black text-white hover:bg-gray-800 justify-start"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground justify-start shadow-md hover:shadow-lg transition-all duration-200 font-medium"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Create new chat
+            New Project
+          </Button>
+        </div>
+      )}
+      
+      {/* Collapsed New Button */}
+      {isCollapsed && (
+        <div className="px-2 py-2">
+          <Button
+            onClick={onCreateNewChat}
+            size="icon"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200"
+          >
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
       )}
@@ -93,19 +120,23 @@ const Sidebar: React.FC<SidebarProps> = ({
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1">
-            {navigationItems.filter(item => ['dashboard', 'chat', 'projects'].includes(item.id)).map((item: NavigationItem) => (
+            {[
+              { id: 'dashboard', label: 'Editor', icon: <FileText className="h-4 w-4" /> },
+              { id: 'chat', label: 'AI Chat', icon: <MessageSquare className="h-4 w-4" /> },
+              { id: 'projects', label: 'Projects', icon: <FolderOpen className="h-4 w-4" /> }
+            ].map((item) => (
               <Button
                 key={item.id}
                 variant="ghost"
                 className={cn(
-                  "w-full justify-start text-left h-9 px-3 transition-colors ml-4",
+                  "w-full justify-start text-left h-9 px-3 transition-colors ml-4 rounded-md",
                   activeTab === item.id 
-                    ? "bg-sidebar-accent text-sidebar-foreground" 
+                    ? "bg-primary/10 text-primary border-l-2 border-primary font-medium" 
                     : "text-sidebar-text-muted hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 )}
                 onClick={() => onTabChange(item.id)}
               >
-                <span className="mr-3 text-base">
+                <span className="mr-3">
                   {item.icon}
                 </span>
                 {!isCollapsed && (
@@ -155,19 +186,24 @@ const Sidebar: React.FC<SidebarProps> = ({
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1">
-            {navigationItems.filter(item => ['templates', 'case-studies', 'prompt-library', 'video-editing'].includes(item.id)).map((item: NavigationItem) => (
+            {[
+              { id: 'templates', label: 'Templates', icon: <Layout className="h-4 w-4" /> },
+              { id: 'case-studies', label: 'Case Studies', icon: <BookOpen className="h-4 w-4" /> },
+              { id: 'prompt-library', label: 'Prompts', icon: <Sparkles className="h-4 w-4" /> },
+              { id: 'video-editing', label: 'Video Tools', icon: <Video className="h-4 w-4" /> }
+            ].map((item) => (
               <Button
                 key={item.id}
                 variant="ghost"
                 className={cn(
-                  "w-full justify-start text-left h-9 px-3 transition-colors ml-4",
+                  "w-full justify-start text-left h-9 px-3 transition-colors ml-4 rounded-md",
                   activeTab === item.id 
-                    ? "bg-sidebar-accent text-sidebar-foreground" 
+                    ? "bg-primary/10 text-primary border-l-2 border-primary font-medium" 
                     : "text-sidebar-text-muted hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 )}
                 onClick={() => onTabChange(item.id)}
               >
-                <span className="mr-3 text-base">
+                <span className="mr-3">
                   {item.icon}
                 </span>
                 {!isCollapsed && (
@@ -204,19 +240,20 @@ const Sidebar: React.FC<SidebarProps> = ({
         {/* Upgrade Button */}
         {!isCollapsed ? (
           <Button 
-            className="w-full bg-sidebar-foreground text-sidebar hover:bg-sidebar-foreground/90 text-sm font-medium"
+            className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200"
             onClick={() => onTabChange('pricing')}
           >
-            Upgrade Your Plan
+            <Zap className="h-4 w-4 mr-2" />
+            Upgrade Pro
           </Button>
         ) : (
           <div className="flex justify-center">
             <Button 
               size="icon" 
-              className="bg-sidebar-foreground text-sidebar hover:bg-sidebar-foreground/90"
+              className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 shadow-md hover:shadow-lg transition-all duration-200"
               onClick={() => onTabChange('pricing')}
             >
-              ⚡
+              <Zap className="h-4 w-4" />
             </Button>
           </div>
         )}

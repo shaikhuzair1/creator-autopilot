@@ -15,7 +15,7 @@ import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
-const MergedDocumentEditor = ({ onSave, onAddToScript, content, projectTitle }) => {
+const MergedDocumentEditor = ({ onSave, onAddToScript, content, projectTitle, isFullWidth = false }) => {
   const [autoComplete, setAutoComplete] = useState('');
   const [inlineChat, setInlineChat] = useState({ isOpen: false, position: { x: 0, y: 0 }, selectedText: '' });
   const [chatMessage, setChatMessage] = useState('');
@@ -262,17 +262,20 @@ const MergedDocumentEditor = ({ onSave, onAddToScript, content, projectTitle }) 
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => {
-              const rows = prompt('Enter number of rows:', '3');
-              const cols = prompt('Enter number of columns:', '3');
-              if (rows && cols) {
-                editor?.chain().focus().insertTable({ 
-                  rows: parseInt(rows), 
-                  cols: parseInt(cols), 
-                  withHeaderRow: true 
-                }).run();
-              }
-            }}
+             onClick={() => {
+               const rows = prompt('Enter number of rows:', '3');
+               const cols = prompt('Enter number of columns:', '3');
+               if (rows && cols && !isNaN(parseInt(rows)) && !isNaN(parseInt(cols))) {
+                 const numRows = Math.max(1, Math.min(20, parseInt(rows)));
+                 const numCols = Math.max(1, Math.min(10, parseInt(cols)));
+                 editor?.chain().focus().insertTable({ 
+                   rows: numRows, 
+                   cols: numCols, 
+                   withHeaderRow: true 
+                 }).run();
+                 toast({ title: 'Table Added', description: `Created ${numRows}x${numCols} table successfully.` });
+               }
+             }}
           >
             <TableIcon className="h-4 w-4" />
           </Button>
@@ -319,10 +322,10 @@ const MergedDocumentEditor = ({ onSave, onAddToScript, content, projectTitle }) 
 
       {/* Editor Area */}
       <div className="flex-1 relative overflow-hidden">
-        <div className="h-full overflow-y-auto p-4">
+        <div className={`h-full overflow-y-auto transition-all duration-300 ${isFullWidth ? 'px-8 max-w-5xl mx-auto' : 'p-4'}`}>
           <EditorContent 
             editor={editor} 
-            className="prose prose-invert max-w-none min-h-[100vh] focus:outline-none"
+            className="prose prose-invert max-w-none min-h-screen focus:outline-none font-sans"
           />
         </div>
         

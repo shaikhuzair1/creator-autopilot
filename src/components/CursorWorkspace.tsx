@@ -189,7 +189,7 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <div className={`flex-shrink-0 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
+        <div className={`flex-shrink-0 transition-all duration-300 ${isCollapsed ? 'w-16 min-w-16' : 'w-64 min-w-64'}`}>
           <Sidebar
             isCollapsed={isCollapsed}
             activeTab={activeTab}
@@ -218,12 +218,13 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
         <div className="flex-1 flex overflow-hidden">
           <ResizablePanelGroup direction="horizontal">
             {/* Document Editor Panel */}
-            <ResizablePanel defaultSize={isChatOpen ? 70 : 100} minSize={50}>
+            <ResizablePanel defaultSize={isChatOpen ? 70 : 100} minSize={isChatOpen ? 50 : 100}>
               <MergedDocumentEditor 
                 onSave={handleSaveDocument} 
                 onAddToScript={setAddToScriptFunction}
                 content={projects.find(p => p.id === currentProjectId)?.content || ''}
                 projectTitle={projects.find(p => p.id === currentProjectId)?.title || 'Untitled'}
+                isFullWidth={!isChatOpen}
               />
             </ResizablePanel>
 

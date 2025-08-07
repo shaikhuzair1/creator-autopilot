@@ -19,8 +19,9 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['SF Pro Display', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
-				mono: ['SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'monospace'],
+				sans: ['Inter', 'Poppins', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+				mono: ['JetBrains Mono', 'Monaco', 'SF Mono', 'monospace'],
+				heading: ['Poppins', 'Inter', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',

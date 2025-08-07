@@ -67,18 +67,19 @@
   }
 
   .dark {
-    /* Cursor Dark Theme */
-    --background: 240 10% 8%;
-    --foreground: 0 0% 95%;
+    /* Cursor Dark Theme - Professional */
+    --background: 240 8% 5%;
+    --foreground: 220 13% 91%;
 
-    --card: 240 10% 10%;
-    --card-foreground: 0 0% 95%;
+    --card: 240 8% 8%;
+    --card-foreground: 220 13% 91%;
 
     --popover: 240 10% 10%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 222 100% 65%;
-    --primary-foreground: 240 10% 8%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 217 91% 70%;
 
     --secondary: 240 5% 15%;
     --secondary-foreground: 0 0% 95%;
