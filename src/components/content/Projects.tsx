@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Folder, Plus, Edit, Trash2, Eye, MoreHorizontal, Calendar, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 type LocalProject = {
   id: string;
@@ -21,6 +22,7 @@ type LocalProject = {
 };
 
 const Projects: React.FC = () => {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<string>('All');
   const [projects, setProjects] = useState<LocalProject[]>([]);
   const [selectedProject, setSelectedProject] = useState<LocalProject | null>(null);
@@ -114,6 +116,7 @@ const Projects: React.FC = () => {
   const handleEditProject = (project: LocalProject) => {
     // Send message to parent to switch to editor with this project
     window.dispatchEvent(new CustomEvent('editProject', { detail: project }));
+    navigate('/editor');
   };
 
   const handleRemoveProject = (project: LocalProject) => {
@@ -282,7 +285,10 @@ const Projects: React.FC = () => {
       </Card>
 
       {/* Project Details Dialog */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+      <Dialog open={isDetailsOpen} onOpenChange={(open) => {
+        setIsDetailsOpen(open);
+        if (!open) setSelectedProject(null);
+      }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{selectedProject?.title}</DialogTitle>
@@ -334,7 +340,10 @@ const Projects: React.FC = () => {
       </Dialog>
 
       {/* Change Status Dialog */}
-      <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
+      <Dialog open={isStatusDialogOpen} onOpenChange={(open) => {
+        setIsStatusDialogOpen(open);
+        if (!open) setSelectedProject(null);
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Change Project Status</DialogTitle>
@@ -365,7 +374,10 @@ const Projects: React.FC = () => {
       </Dialog>
 
       {/* New Project Dialog */}
-      <Dialog open={isNewProjectOpen} onOpenChange={setIsNewProjectOpen}>
+      <Dialog open={isNewProjectOpen} onOpenChange={(open) => {
+        setIsNewProjectOpen(open);
+        if (!open) setNewProjectTitle('');
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>

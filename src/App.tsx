@@ -5,6 +5,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import Index from "./pages/Index";
+import Editor from "./pages/Editor";
+import Dashboard from "./pages/Dashboard";
+import Projects from "./pages/Projects";
+import Analytics from "./pages/Analytics";
+import ContentIdeation from "./pages/ContentIdeation";
 import NotFound from "./pages/NotFound";
 import 'reactjs-tiptap-editor/style.css';
 
@@ -25,6 +30,11 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/editor" element={<Editor />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/ideation" element={<ContentIdeation />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

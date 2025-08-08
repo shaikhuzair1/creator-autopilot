@@ -4,26 +4,39 @@ import { Button } from '@/components/ui/button';
 import { MessageCircle, X, User, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useNavigate } from 'react-router-dom';
 import ChatPanel from './ChatPanel';
 import Sidebar from './Sidebar';
 import AuthModal from './AuthModal';
 import './editor.css'
 import MergedDocumentEditor from './DocumentEditor';
+import { useSidebar } from '@/hooks/use-sidebar';
 interface CursorWorkspaceProps {
-  isCollapsed: boolean;
-  activeTab: string;
-  onToggle: () => void;
-  onTabChange: (tabId: string) => void;
-  onCreateNewChat: () => void;
+  isCollapsed?: boolean;
+  activeTab?: string;
+  onToggle?: () => void;
+  onTabChange?: (tabId: string) => void;
+  onCreateNewChat?: () => void;
 }
 const DEFAULT = '';
 const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
-  isCollapsed,
-  activeTab,
-  onToggle,
-  onTabChange,
-  onCreateNewChat
+  isCollapsed: propIsCollapsed,
+  activeTab: propActiveTab,
+  onToggle: propOnToggle,
+  onTabChange: propOnTabChange,
+  onCreateNewChat: propOnCreateNewChat
 }) => {
+  const { isCollapsed: hookIsCollapsed, toggleCollapse } = useSidebar();
+  const navigate = useNavigate();
+  
+  const isCollapsed = propIsCollapsed !== undefined ? propIsCollapsed : hookIsCollapsed;
+  const activeTab = propActiveTab || 'creation';
+  const onToggle = propOnToggle || toggleCollapse;
+  const onTabChange = propOnTabChange || ((tabId: string) => {
+    if (tabId === 'dashboard') navigate('/dashboard');
+    else if (tabId === 'projects') navigate('/projects');
+  });
+  const onCreateNewChat = propOnCreateNewChat || (() => {});
   const [content, setContent] = useState(DEFAULT);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -92,12 +105,17 @@ const CursorWorkspace: React.FC<CursorWorkspaceProps> = ({
     };
   }, [onTabChange]);
 
-  const handleSaveDocument = (content: string) => {
+  const handleSaveDocument = (content: string, title?: string) => {
     if (!currentProjectId) return;
     
     const updatedProjects = projects.map(project => 
       project.id === currentProjectId 
-        ? { ...project, content, lastModified: new Date().toISOString() }
+        ? { 
+            ...project, 
+            content, 
+            title: title || project.title,
+            lastModified: new Date().toISOString() 
+          }
         : project
     );
     

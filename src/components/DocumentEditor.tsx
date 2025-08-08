@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Save, X, Send, Bold, Italic, List, ListOrdered, Heading1, Heading2, Image, YoutubeIcon, TableIcon, Code, Quote, Undo, Redo } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Save, X, Send, Bold, Italic, List, ListOrdered, Heading1, Heading2, Image, YoutubeIcon, TableIcon, Code, Quote, Undo, Redo, Edit2, Check } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TiptapImage from '@tiptap/extension-image';
@@ -20,6 +21,8 @@ const MergedDocumentEditor = ({ onSave, onAddToScript, content, projectTitle, is
   const [inlineChat, setInlineChat] = useState({ isOpen: false, position: { x: 0, y: 0 }, selectedText: '' });
   const [chatMessage, setChatMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editTitle, setEditTitle] = useState(projectTitle);
   const { toast } = useToast();
 
   const editor = useEditor({
@@ -96,10 +99,24 @@ const MergedDocumentEditor = ({ onSave, onAddToScript, content, projectTitle, is
   const handleSave = () => {
     if (editor) {
       const content = editor.getHTML();
-      onSave?.(content);
+      onSave?.(content, editTitle);
       toast({ title: 'Document Saved', description: 'Your script has been saved successfully.' });
     }
   };
+
+  const handleTitleSave = () => {
+    setIsEditingTitle(false);
+    handleSave();
+  };
+
+  const handleTitleCancel = () => {
+    setEditTitle(projectTitle);
+    setIsEditingTitle(false);
+  };
+
+  useEffect(() => {
+    setEditTitle(projectTitle);
+  }, [projectTitle]);
 
   const handleInlineChatSend = () => {
     if (!chatMessage.trim() || isLoading || !inlineChat.selectedText) return;
@@ -160,11 +177,42 @@ const MergedDocumentEditor = ({ onSave, onAddToScript, content, projectTitle, is
       {/* Editor Toolbar */}
       <div className="flex items-center justify-between p-3 border-b border-border bg-card flex-wrap">
         <div className="flex items-center gap-2">
+          {isEditingTitle ? (
+            <div className="flex items-center gap-2">
+              <Input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="h-8 w-64"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleTitleSave();
+                  if (e.key === 'Escape') handleTitleCancel();
+                }}
+                autoFocus
+              />
+              <Button size="sm" variant="ghost" onClick={handleTitleSave}>
+                <Check className="h-4 w-4" />
+              </Button>
+              <Button size="sm" variant="ghost" onClick={handleTitleCancel}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">{projectTitle}</span>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={() => setIsEditingTitle(true)}
+                className="h-6 w-6 p-0"
+              >
+                <Edit2 className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
           <Button variant="ghost" size="sm" onClick={handleSave}>
             <Save className="h-4 w-4 mr-2" />
             Save
           </Button>
-          <span className="text-sm text-muted-foreground">{projectTitle}</span>
         </div>
         
         <div className="flex items-center gap-2 flex-wrap">
@@ -331,7 +379,7 @@ const MergedDocumentEditor = ({ onSave, onAddToScript, content, projectTitle, is
         
         {/* Inline Chat Panel */}
         {inlineChat.isOpen && (
-          <Card className="absolute z-50 w-80 shadow-lg border border-border bg-background"
+          <Card className="fixed z-50 w-80 shadow-lg border border-border bg-background"
             style={{ 
               left: Math.min(inlineChat.position.x, window.innerWidth - 320), 
               top: Math.min(inlineChat.position.y, window.innerHeight - 200)

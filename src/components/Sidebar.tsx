@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { navigationItems } from '@/data/mockData';
@@ -42,6 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   currentProjectId,
   onProjectSelect
 }) => {
+  const navigate = useNavigate();
   const [isGeneralOpen, setIsGeneralOpen] = useState(true);
   const [isWorkflowsOpen, setIsWorkflowsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -121,9 +123,9 @@ const Sidebar: React.FC<SidebarProps> = ({
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1">
             {[
-              { id: 'dashboard', label: 'Editor', icon: <FileText className="h-4 w-4" /> },
+              { id: 'dashboard', label: 'Editor', icon: <FileText className="h-4 w-4" />, route: '/editor' },
               { id: 'chat', label: 'AI Chat', icon: <MessageSquare className="h-4 w-4" /> },
-              { id: 'projects', label: 'Projects', icon: <FolderOpen className="h-4 w-4" /> }
+              { id: 'projects', label: 'Projects', icon: <FolderOpen className="h-4 w-4" />, route: '/projects' }
             ].map((item) => (
               <Button
                 key={item.id}
@@ -134,7 +136,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                     ? "bg-primary/10 text-primary border-l-2 border-primary font-medium" 
                     : "text-sidebar-text-muted hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 )}
-                onClick={() => onTabChange(item.id)}
+                onClick={() => {
+                  if (item.route) {
+                    navigate(item.route);
+                  } else {
+                    onTabChange(item.id);
+                  }
+                }}
               >
                 <span className="mr-3">
                   {item.icon}
